@@ -22,21 +22,49 @@ import { Button } from '@/components/ui/button';
 import { Download, Search, Trash2, FilePenLine, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 export function RecordsTable({ initialData }: { initialData: InseminationRecord[] }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [selectedYear, setSelectedYear] = useState<string>('');
+
+  const availableYears = useMemo(() => {
+    const years = new Set(initialData.map(record => new Date(record.inseminationDate).getFullYear().toString()));
+    return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
+  }, [initialData]);
+
+  const months = [
+    { value: '0', label: 'Januari' }, { value: '1', label: 'Februari' }, { value: '2', label: 'Maret' },
+    { value: '3', label: 'April' }, { value: '4', label: 'Mei' }, { value: '5', label: 'Juni' },
+    { value: '6', label: 'Juli' }, { value: '7', label: 'Agustus' }, { value: '8', label: 'September' },
+    { value: '9', label: 'Oktober' }, { value: '10', label: 'November' }, { value: '11', label: 'Desember' }
+  ];
 
   const filteredData = useMemo(() => {
-    if (!searchTerm) return initialData;
-    return initialData.filter(
-      (record) =>
+    return initialData.filter(record => {
+      const recordDate = new Date(record.inseminationDate);
+      const isMonthMatch = selectedMonth === '' || recordDate.getMonth().toString() === selectedMonth;
+      const isYearMatch = selectedYear === '' || recordDate.getFullYear().toString() === selectedYear;
+
+      const isSearchMatch =
+        searchTerm === '' ||
         record.breederName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         record.breederId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (record.phoneNumber && record.phoneNumber.includes(searchTerm)) ||
         record.cowId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.staffName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, initialData]);
+        record.staffName.toLowerCase().includes(searchTerm.toLowerCase());
+
+      return isMonthMatch && isYearMatch && isSearchMatch;
+    });
+  }, [searchTerm, initialData, selectedMonth, selectedYear]);
   
   const exportToCSV = () => {
     const headers = [
@@ -85,7 +113,31 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
           Lihat, cari, dan ekspor semua data inseminasi yang telah tercatat.
         </CardDescription>
         <div className="flex flex-col sm:flex-row items-center gap-2 pt-4">
-            <div className="relative w-full flex-1">
+            <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex-1">
+                 <Select onValueChange={setSelectedMonth} value={selectedMonth}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Bulan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="">Semua Bulan</SelectItem>
+                        {months.map(month => (
+                            <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                 <Select onValueChange={setSelectedYear} value={selectedYear}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Tahun" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="">Semua Tahun</SelectItem>
+                        {availableYears.map(year => (
+                            <SelectItem key={year} value={year}>{year}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="relative w-full sm:w-auto sm:flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
                     placeholder="Cari data..."
