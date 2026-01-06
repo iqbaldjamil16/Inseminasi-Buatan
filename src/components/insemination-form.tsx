@@ -29,6 +29,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, Loader2 } from 'lucide-react';
@@ -74,10 +81,17 @@ export function InseminationForm() {
       });
     }
   }
-  
+
+  const puskeswanOptions = [
+    'Puskeswan Budong-Budong',
+    'Puskeswan Karossa',
+    'Puskeswan Pangale',
+    'Puskeswan Tobadak',
+    'Puskeswan Topoyo',
+  ];
+
   const formFields = [
     { name: 'staffName', label: 'Nama Petugas' },
-    { name: 'puskeswan', label: 'Puskeswan' },
     { name: 'breederName', label: 'Nama Peternak' },
     { name: 'breederAddress', label: 'Alamat Peternak' },
     { name: 'phoneNumber', label: 'Nomor HP' },
@@ -140,6 +154,33 @@ export function InseminationForm() {
                       />
                     </PopoverContent>
                   </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Card>
+          
+          <Card className="p-4 flex flex-col justify-center">
+            <FormField
+              control={form.control}
+              name="puskeswan"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Puskeswan</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Puskeswan" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {puskeswanOptions.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
