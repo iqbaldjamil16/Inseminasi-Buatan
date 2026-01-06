@@ -1,0 +1,246 @@
+{
+  "entities": {
+    "InseminationRecord": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "InseminationRecord",
+      "type": "object",
+      "description": "Represents a record of an artificial insemination event.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the insemination record."
+        },
+        "inseminationDate": {
+          "type": "string",
+          "description": "Date of the insemination event.",
+          "format": "date-time"
+        },
+        "staffName": {
+          "type": "string",
+          "description": "Name of the staff member who performed the insemination."
+        },
+        "puskeswanId": {
+          "type": "string",
+          "description": "Reference to Puskeswan. (Relationship: Puskeswan 1:N InseminationRecord)"
+        },
+        "breederId": {
+          "type": "string",
+          "description": "Reference to Breeder. (Relationship: Breeder 1:N InseminationRecord)"
+        },
+        "cowId": {
+          "type": "string",
+          "description": "Reference to Cow. (Relationship: Cow 1:N InseminationRecord)"
+        },
+        "strawId": {
+          "type": "string",
+          "description": "Reference to Straw. (Relationship: Straw 1:N InseminationRecord)"
+        }
+      },
+      "required": [
+        "id",
+        "inseminationDate",
+        "staffName",
+        "puskeswanId",
+        "breederId",
+        "cowId",
+        "strawId"
+      ]
+    },
+    "Puskeswan": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Puskeswan",
+      "type": "object",
+      "description": "Represents an animal health center.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the animal health center."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the animal health center."
+        },
+        "address": {
+          "type": "string",
+          "description": "Address of the animal health center."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "address"
+      ]
+    },
+    "Breeder": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Breeder",
+      "type": "object",
+      "description": "Represents a breeder.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the breeder (KTP)."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the breeder."
+        },
+        "address": {
+          "type": "string",
+          "description": "Address of the breeder."
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "Phone number of the breeder."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "address",
+        "phoneNumber"
+      ]
+    },
+    "Cow": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Cow",
+      "type": "object",
+      "description": "Represents a cow.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the cow (Eartag)."
+        },
+        "breed": {
+          "type": "string",
+          "description": "Breed of the cow."
+        }
+      },
+      "required": [
+        "id",
+        "breed"
+      ]
+    },
+    "Straw": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Straw",
+      "type": "object",
+      "description": "Represents a straw of semen.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the straw."
+        },
+        "strawType": {
+          "type": "string",
+          "description": "Type of straw (Pejantan)."
+        },
+        "batchId": {
+          "type": "string",
+          "description": "Batch ID of the straw."
+        },
+        "producer": {
+          "type": "string",
+          "description": "Producer of the straw."
+        }
+      },
+      "required": [
+        "id",
+        "strawType",
+        "batchId",
+        "producer"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/inseminationRecords/{inseminationRecordId}",
+        "definition": {
+          "entityName": "InseminationRecord",
+          "schema": {
+            "$ref": "#/backend/entities/InseminationRecord"
+          },
+          "description": "Stores insemination records. Includes references to Puskeswan, Breeder, Cow, and Straw.",
+          "params": [
+            {
+              "name": "inseminationRecordId",
+              "description": "Unique identifier for the insemination record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/puskeswans/{puskeswanId}",
+        "definition": {
+          "entityName": "Puskeswan",
+          "schema": {
+            "$ref": "#/backend/entities/Puskeswan"
+          },
+          "description": "Stores animal health center data.",
+          "params": [
+            {
+              "name": "puskeswanId",
+              "description": "Unique identifier for the animal health center."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/breeders/{breederId}",
+        "definition": {
+          "entityName": "Breeder",
+          "schema": {
+            "$ref": "#/backend/entities/Breeder"
+          },
+          "description": "Stores breeder data.",
+          "params": [
+            {
+              "name": "breederId",
+              "description": "Unique identifier for the breeder."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/cows/{cowId}",
+        "definition": {
+          "entityName": "Cow",
+          "schema": {
+            "$ref": "#/backend/entities/Cow"
+          },
+          "description": "Stores cow data.",
+          "params": [
+            {
+              "name": "cowId",
+              "description": "Unique identifier for the cow."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/straws/{strawId}",
+        "definition": {
+          "entityName": "Straw",
+          "schema": {
+            "$ref": "#/backend/entities/Straw"
+          },
+          "description": "Stores straw data.",
+          "params": [
+            {
+              "name": "strawId",
+              "description": "Unique identifier for the straw."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to store insemination records and related data (Puskeswan, Breeder, Cow, Straw). The structure prioritizes authorization independence by storing all insemination records under a single collection and denormalizing the relevant information into the insemination record document. This eliminates the need for complex `get()` calls in security rules and enables atomic operations.\n\nThe primary collection is `inseminationRecords`. It stores data about each insemination event. References to other entities (Puskeswan, Breeder, Cow, and Straw) are stored as IDs within the InseminationRecord documents. \n\nThis structure allows for simple, secure `list` operations (QAPs) on the `inseminationRecords` collection, as the rules can be based solely on the data contained within each document.  The denormalization of data contributes to authorization independence, allowing for easier management of access control and data integrity."
+  }
+}

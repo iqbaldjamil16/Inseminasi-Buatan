@@ -1,0 +1,178 @@
+/**
+ * @fileoverview Firestore Security Rules for the Insemination Tracking App.
+ *
+ * @description
+ * This ruleset is designed for the prototyping phase of an application that tracks
+ * livestock insemination records. It provides a secure foundation by requiring
+ * user authentication for all database interactions while allowing flexibility in
+ * the data schema to support rapid development.
+ *
+ * Core Philosophy:
+ * The security model assumes that all authenticated users are trusted operators
+ * (e.g., veterinarians, administrative staff) with equal permissions to manage the
+ * application's data. It enforces a strict "must be signed in" policy for all
+ * read and write operations across the entire database. This prevents any
+ * unauthorized or anonymous access.
+ *
+ * Data Structure:
+ * The database is organized into several top-level collections:
+ * - /inseminationRecords: The core collection for individual insemination events.
+ * - /puskeswans: Reference data for animal health centers.
+ * - /breeders: Reference data for livestock breeders.
+ * - /cows: Reference data for individual cows.
+ * - /straws: Reference data for semen straws.
+ * This flat structure simplifies data access and rule definition.
+ *
+ * Key Security Decisions:
+ * - Authenticated Access Only: All collections require a user to be signed in
+ *   for any type of access (read, list, create, update, delete). There is no
+ *   publicly accessible data.
+ * - No Ownership Model: The current data schema does not include user-specific
+ *   ownership fields (e.g., `creatorId`, `ownerId`). Therefore, the rules do not
+ *   restrict document modification to a specific owner. Any authenticated user
+ *   can manage any document. This is suitable for a collaborative, internal tool
+ *   but should be revisited with a more granular role or ownership system if the
+ *   application's requirements change.
+ * - Flexible Schema: In line with the prototyping philosophy, these rules do not
+ *   validate the specific fields or data types of documents. The focus is solely
+ *   on authorizing the user performing the request.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------------------------------------------------------------------------
+    // Helper Functions
+    // -------------------------------------------------------------------------
+
+    /**
+     * Checks if the user making the request is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if a document exists before an update or delete operation.
+     * This prevents operations on non-existent documents.
+     */
+    function isExistingDoc() {
+      return resource != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // Collection: inseminationRecords
+    // -------------------------------------------------------------------------
+
+    /**
+     * @description
+     *   Manages access to insemination records. In this prototype, any
+     *   authenticated user can create, read, and manage any record.
+     * @path /inseminationRecords/{inseminationRecordId}
+     * @allow (create) An authenticated user can create a new insemination record.
+     * @deny (create) An anonymous user cannot create a record.
+     * @principle
+     *   Secures the primary data collection by requiring authentication for all
+     *   access, ensuring a baseline of accountability.
+     */
+    match /inseminationRecords/{inseminationRecordId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && isExistingDoc();
+      allow delete: if isSignedIn() && isExistingDoc();
+    }
+
+    // -------------------------------------------------------------------------
+    // Collection: puskeswans
+    // -------------------------------------------------------------------------
+
+    /**
+     * @description
+     *   Manages reference data for Animal Health Centers (Puskeswan). Any
+     *   authenticated user can manage this data.
+     * @path /puskeswans/{puskeswanId}
+     * @allow (create) An authenticated user can add a new health center.
+     * @deny (get) An anonymous user cannot read health center data.
+     * @principle
+     *   Ensures that only trusted, authenticated users can manage the system's
+     *   foundational reference data.
+     */
+    match /puskeswans/{puskeswanId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && isExistingDoc();
+      allow delete: if isSignedIn() && isExistingDoc();
+    }
+
+    // -------------------------------------------------------------------------
+    // Collection: breeders
+    // -------------------------------------------------------------------------
+
+    /**
+     * @description
+     *   Manages reference data for breeders. Any authenticated user can manage
+     *   this data.
+     * @path /breeders/{breederId}
+     * @allow (list) An authenticated user can list all breeders.
+     * @deny (update) An anonymous user cannot modify a breeder's details.
+     * @principle
+     *   Ensures that only trusted, authenticated users can manage the system's
+     *   foundational reference data.
+     */
+    match /breeders/{breederId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && isExistingDoc();
+      allow delete: if isSignedIn() && isExistingDoc();
+    }
+
+    // -------------------------------------------------------------------------
+    // Collection: cows
+    // -------------------------------------------------------------------------
+
+    /**
+     * @description
+     *   Manages reference data for cows. Any authenticated user can manage
+     *   this data.
+     * @path /cows/{cowId}
+     * @allow (create) An authenticated user can add a new cow to the system.
+     * @deny (delete) An anonymous user cannot delete a cow.
+     * @principle
+     *   Ensures that only trusted, authenticated users can manage the system's
+     *   foundational reference data.
+     */
+    match /cows/{cowId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && isExistingDoc();
+      allow delete: if isSignedIn() && isExistingDoc();
+    }
+
+    // -------------------------------------------------------------------------
+    // Collection: straws
+    // -------------------------------------------------------------------------
+
+    /**
+     * @description
+     *   Manages reference data for semen straws. Any authenticated user can
+     *   manage this data.
+     * @path /straws/{strawId}
+     * @allow (get) An authenticated user can read the details of a specific straw.
+     * @deny (list) An anonymous user cannot list all straws.
+     * @principle
+     *   Ensures that only trusted, authenticated users can manage the system's
+     *   foundational reference data.
+     */
+    match /straws/{strawId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && isExistingDoc();
+      allow delete: if isSignedIn() && isExistingDoc();
+    }
+  }
+}
