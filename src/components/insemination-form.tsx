@@ -92,84 +92,84 @@ export function InseminationForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <Card>
-          <CardHeader>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div>
+          <CardHeader className="px-0">
             <CardTitle>Input Data Inseminasi Buatan</CardTitle>
             <CardDescription>
               Masukkan detail pelayanan inseminasi buatan yang telah dilakukan.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="p-4 flex flex-col justify-center">
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card className="p-4 flex flex-col justify-center">
+            <FormField
+              control={form.control}
+              name="inseminationDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Tanggal IB</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={'outline'}
+                          className={cn(
+                            'w-full pl-3 text-left font-normal',
+                            !field.value && 'text-muted-foreground'
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, 'PPP')
+                          ) : (
+                            <span>Pilih tanggal</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) =>
+                          date > new Date() || date < new Date('1900-01-01')
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Card>
+
+          {formFields.map((formField) => (
+            <Card key={formField.name} className="p-4 flex flex-col justify-center">
               <FormField
                 control={form.control}
-                name="inseminationDate"
+                name={formField.name}
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Tanggal IB</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={'outline'}
-                            className={cn(
-                              'w-full pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, 'PPP')
-                            ) : (
-                              <span>Pilih tanggal</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            date > new Date() || date < new Date('1900-01-01')
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                  <FormItem>
+                    <FormLabel>{formField.label}</FormLabel>
+                    <FormControl>
+                      <Input placeholder={`Masukkan ${formField.label.toLowerCase()}`} {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </Card>
-
-            {formFields.map((formField) => (
-              <Card key={formField.name} className="p-4 flex flex-col justify-center">
-                <FormField
-                  control={form.control}
-                  name={formField.name}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{formField.label}</FormLabel>
-                      <FormControl>
-                        <Input placeholder={`Masukkan ${formField.label.toLowerCase()}`} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </Card>
-            ))}
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Simpan Data
-            </Button>
-          </CardFooter>
-        </Card>
+          ))}
+        </div>
+        <CardFooter className="flex justify-end px-0">
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Simpan Data
+          </Button>
+        </CardFooter>
       </form>
     </Form>
   );
