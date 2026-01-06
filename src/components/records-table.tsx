@@ -263,7 +263,7 @@ export function RecordsTable() {
         </CardDescription>
         <div className="flex flex-col sm:flex-row items-center gap-2 pt-4">
             <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex-1">
-                 <Select onValueChange={setSelectedMonth} value={selectedMonth}>
+                 <Select onValueChange={setSelectedMonth} value={selectedMonth === 'all' ? undefined : selectedMonth}>
                     <SelectTrigger>
                         <SelectValue placeholder="Pilih Bulan" />
                     </SelectTrigger>
