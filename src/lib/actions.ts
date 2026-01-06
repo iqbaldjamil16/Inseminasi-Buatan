@@ -13,6 +13,8 @@ export async function saveInseminationRecord(record: InseminationRecord) {
       createdAt: serverTimestamp(),
     });
     revalidatePath('/');
+    revalidatePath('/records');
+    revalidatePath('/summary');
     return { success: true, message: 'Data berhasil disimpan.' };
   } catch (error) {
     console.error('Error saving record: ', error);
@@ -22,17 +24,23 @@ export async function saveInseminationRecord(record: InseminationRecord) {
 
 export async function getInseminationRecords(): Promise<InseminationRecord[]> {
   try {
-    const q = query(collection(db, 'inseminationRecords'), orderBy('inseminationDate', 'desc'));
+    // Remove orderBy from the query to prevent invalid argument errors
+    const q = query(collection(db, 'inseminationRecords'));
     const querySnapshot = await getDocs(q);
     const records: InseminationRecord[] = [];
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      records.push({
-        id: doc.id,
-        ...data,
-        inseminationDate: data.inseminationDate.toDate(),
-      } as InseminationRecord);
+      // Ensure date is valid before pushing
+      if (data.inseminationDate && data.inseminationDate.toDate) {
+        records.push({
+          id: doc.id,
+          ...data,
+          inseminationDate: data.inseminationDate.toDate(),
+        } as InseminationRecord);
+      }
     });
+    // Sort records on the client side
+    records.sort((a, b) => b.inseminationDate.getTime() - a.inseminationDate.getTime());
     return records;
   } catch (error) {
     console.error('Error fetching records: ', error);
