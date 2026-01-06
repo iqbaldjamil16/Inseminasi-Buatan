@@ -33,7 +33,7 @@ import {
 
 export function RecordsTable({ initialData }: { initialData: InseminationRecord[] }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [selectedMonth, setSelectedMonth] = useState<string>('0');
   const [selectedYear, setSelectedYear] = useState<string>('all');
 
   const availableYears = useMemo(() => {
@@ -51,7 +51,7 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
   const filteredData = useMemo(() => {
     return initialData.filter(record => {
       const recordDate = new Date(record.inseminationDate);
-      const isMonthMatch = selectedMonth === 'all' || recordDate.getMonth().toString() === selectedMonth;
+      const isMonthMatch = recordDate.getMonth().toString() === selectedMonth;
       const isYearMatch = selectedYear === 'all' || recordDate.getFullYear().toString() === selectedYear;
 
       const isSearchMatch =
@@ -119,7 +119,6 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
                         <SelectValue placeholder="Bulan" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">Semua Bulan</SelectItem>
                         {months.map(month => (
                             <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
                         ))}
