@@ -91,15 +91,15 @@ export function InseminationForm() {
   ] as const;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Input Data Inseminasi Buatan</CardTitle>
-        <CardDescription>
-          Masukkan detail pelayanan inseminasi buatan yang telah dilakukan.
-        </CardDescription>
-      </CardHeader>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Input Data Inseminasi Buatan</CardTitle>
+            <CardDescription>
+              Masukkan detail pelayanan inseminasi buatan yang telah dilakukan.
+            </CardDescription>
+          </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card className="p-4 flex flex-col justify-center">
               <FormField
@@ -169,8 +169,8 @@ export function InseminationForm() {
               Simpan Data
             </Button>
           </CardFooter>
-        </form>
-      </Form>
-    </Card>
+        </Card>
+      </form>
+    </Form>
   );
 }
