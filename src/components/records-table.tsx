@@ -32,6 +32,42 @@ import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebas
 import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
 
+const sampleRecords: InseminationRecord[] = [
+    {
+        id: 'sample-1',
+        inseminationDate: new Date('2024-05-20T10:00:00Z'),
+        staffName: 'Dr. John Doe',
+        puskeswan: 'Puskeswan Topoyo',
+        breederName: 'Peternak Jaya',
+        breederAddress: 'Desa Sumber Makmur',
+        phoneNumber: '081234567890',
+        breederId: '1234567890123456',
+        cowType: 'Sapi Limosin',
+        cowId: 'LIM-001',
+        strawType: 'Pejantan Unggul',
+        strawId: 'PU-A01',
+        strawBatchId: 'B001-2024',
+        strawProducer: 'PT. Bibit Super',
+        createdAt: new Date(),
+    },
+    {
+        id: 'sample-2',
+        inseminationDate: new Date('2024-05-22T11:30:00Z'),
+        staffName: 'Dr. Jane Smith',
+        puskeswan: 'Puskeswan Karossa',
+        breederName: 'Berkah Ternak',
+        breederAddress: 'Dusun Tani Maju',
+        phoneNumber: '082345678901',
+        breederId: '9876543210987654',
+        cowType: 'Sapi Simental',
+        cowId: 'SIM-002',
+        strawType: 'Pejantan Prima',
+        strawId: 'PP-B02',
+        strawBatchId: 'B002-2024',
+        strawProducer: 'CV. Genetik Hebat',
+        createdAt: new Date(),
+    }
+];
 
 export function RecordsTable() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,17 +84,26 @@ export function RecordsTable() {
   
   const { data: recordsData, isLoading } = useCollection<InseminationRecord>(recordsQuery);
 
+  const displayData = useMemo(() => {
+    if (isLoading) return [];
+    if (recordsData && recordsData.length > 0) {
+        return recordsData;
+    }
+    return sampleRecords;
+  }, [recordsData, isLoading])
+
+
   const availableYears = useMemo(() => {
-    if (!recordsData) return [];
+    if (!displayData) return [];
     const years = new Set<string>();
-    recordsData.forEach(record => {
+    displayData.forEach(record => {
       const date = (record.inseminationDate as any)?.toDate ? (record.inseminationDate as any).toDate() : new Date(record.inseminationDate);
       if (date && !isNaN(date.getFullYear())) {
          years.add(date.getFullYear().toString());
       }
     });
     return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
-  }, [recordsData]);
+  }, [displayData]);
 
   const months = [
     { value: '0', label: 'Januari' }, { value: '1', label: 'Februari' }, { value: '2', label: 'Maret' },
@@ -68,9 +113,9 @@ export function RecordsTable() {
   ];
 
   const filteredData = useMemo(() => {
-    if (!recordsData) return [];
+    if (!displayData) return [];
 
-    let records = recordsData.map(record => ({
+    let records = displayData.map(record => ({
       ...record,
       inseminationDate: (record.inseminationDate as any)?.toDate ? (record.inseminationDate as any).toDate() : new Date(record.inseminationDate)
     })).sort((a, b) => b.inseminationDate.getTime() - a.inseminationDate.getTime());
@@ -94,7 +139,7 @@ export function RecordsTable() {
 
       return isMonthMatch && isYearMatch && isSearchMatch;
     });
-  }, [searchTerm, recordsData, selectedMonth, selectedYear]);
+  }, [searchTerm, displayData, selectedMonth, selectedYear]);
   
   const exportToCSV = () => {
     const headers = [
@@ -296,3 +341,5 @@ export function RecordsTable() {
     </Card>
   );
 }
+
+    
