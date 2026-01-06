@@ -49,20 +49,15 @@ export function RecordsTable() {
   const { data: recordsData, isLoading } = useCollection<InseminationRecord>(recordsQuery);
 
   const availableYears = useMemo(() => {
+    if (!recordsData) return [];
     const years = new Set<string>();
-    if (recordsData) {
-      recordsData.forEach(record => {
-        const date = (record.inseminationDate as any)?.toDate ? (record.inseminationDate as any).toDate() : new Date(record.inseminationDate);
-        if (date && !isNaN(date.getFullYear())) {
-           years.add(date.getFullYear().toString());
-        }
-      });
-    }
-    const staticYears = [];
-    for (let year = 2026; year >= 2021; year--) {
-      staticYears.push(year.toString());
-    }
-    return Array.from(new Set([...staticYears, ...Array.from(years)])).sort((a,b) => parseInt(b) - parseInt(a));
+    recordsData.forEach(record => {
+      const date = (record.inseminationDate as any)?.toDate ? (record.inseminationDate as any).toDate() : new Date(record.inseminationDate);
+      if (date && !isNaN(date.getFullYear())) {
+         years.add(date.getFullYear().toString());
+      }
+    });
+    return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
   }, [recordsData]);
 
   const months = [
