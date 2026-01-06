@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2, Sparkles, Wand2 } from 'lucide-react';
 import { getAiSummary } from '@/lib/actions';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
 
 type Summary = {
@@ -20,9 +20,11 @@ export function AiSummary() {
   const [isPending, startTransition] = useTransition();
 
   const firestore = useFirestore();
+  const { user } = useUser();
+  
   const recordsQuery = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'inseminationRecords') : null),
-    [firestore]
+    () => (firestore && user ? collection(firestore, 'inseminationRecords') : null),
+    [firestore, user]
   );
   const { data: recordsData, isLoading: isLoadingRecords } = useCollection<InseminationRecord>(recordsQuery);
 

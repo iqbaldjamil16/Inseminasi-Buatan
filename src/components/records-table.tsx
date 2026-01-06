@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
 
@@ -39,10 +39,11 @@ export function RecordsTable() {
   const [selectedYear, setSelectedYear] = useState<string | undefined>();
 
   const firestore = useFirestore();
+  const { user } = useUser();
 
   const recordsQuery = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'inseminationRecords') : null),
-    [firestore]
+    () => (firestore && user ? collection(firestore, 'inseminationRecords') : null),
+    [firestore, user]
   );
   
   const { data: recordsData, isLoading } = useCollection<InseminationRecord>(recordsQuery);
