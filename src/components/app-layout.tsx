@@ -116,8 +116,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 </SidebarHeader>
                 <SidebarContent>
                     <SidebarMenu>
-                      {/* Mobile nav includes all items */}
-                      {[...sidebarNavItems, headerNavItem].map((item) => (
+                      {/* Mobile nav only includes sidebar items now */}
+                      {sidebarNavItems.map((item) => (
                         <SidebarMenuItem key={item.href}>
                           <Link href={item.href} passHref>
                             <SidebarMenuButton
@@ -138,7 +138,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
             <div className="w-full flex items-center justify-between">
               <h1 className="text-lg font-semibold">{getPageTitle()}</h1>
-              <nav className="hidden md:flex items-center gap-4">
+              <nav className="flex items-center gap-4">
                   <Link href={headerNavItem.href}>
                       <Button variant={pathname === headerNavItem.href ? "secondary" : "ghost"}>
                           <headerNavItem.icon className="h-4 w-4 mr-2" />
