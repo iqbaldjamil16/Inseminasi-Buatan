@@ -24,6 +24,7 @@ export async function saveInseminationRecord(record: InseminationRecord) {
 
 export async function getInseminationRecords(): Promise<InseminationRecord[]> {
   try {
+    // Query data without ordering to prevent Firestore errors
     const q = query(collection(db, 'inseminationRecords'));
     const querySnapshot = await getDocs(q);
     const records: InseminationRecord[] = [];
@@ -38,8 +39,10 @@ export async function getInseminationRecords(): Promise<InseminationRecord[]> {
         } as InseminationRecord);
       }
     });
-    // Sort records on the client side by date in descending order
+    
+    // Sort records on the server-side after fetching
     records.sort((a, b) => b.inseminationDate.getTime() - a.inseminationDate.getTime());
+    
     return records;
   } catch (error) {
     console.error('Error fetching records: ', error);
