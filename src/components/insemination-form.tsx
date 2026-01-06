@@ -93,14 +93,14 @@ export function InseminationForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div>
-          <CardHeader className="px-0">
+        <Card>
+          <CardHeader>
             <CardTitle>Input Data Inseminasi Buatan</CardTitle>
             <CardDescription>
               Masukkan detail pelayanan inseminasi buatan yang telah dilakukan.
             </CardDescription>
           </CardHeader>
-        </div>
+        </Card>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card className="p-4 flex flex-col justify-center">
             <FormField
