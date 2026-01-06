@@ -68,7 +68,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     const getPageTitle = () => {
         switch (pathname) {
             case '/':
-                return 'Input Data Inseminasi';
+                return 'PKH Mateng';
             case '/records':
                 return 'Catatan Inseminasi Buatan';
             case '/summary':
