@@ -24,14 +24,14 @@ export async function saveInseminationRecord(record: InseminationRecord) {
 
 export async function getInseminationRecords(): Promise<InseminationRecord[]> {
   try {
-    // Query data without ordering to prevent Firestore errors
+    // Query data without ordering to prevent Firestore errors from invalid data
     const q = query(collection(db, 'inseminationRecords'));
     const querySnapshot = await getDocs(q);
     const records: InseminationRecord[] = [];
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      // Ensure date is valid before pushing
-      if (data.inseminationDate && data.inseminationDate.toDate) {
+      // Ensure date is valid and is a Firestore Timestamp before converting and pushing
+      if (data.inseminationDate && typeof data.inseminationDate.toDate === 'function') {
         records.push({
           id: doc.id,
           ...data,
@@ -40,7 +40,7 @@ export async function getInseminationRecords(): Promise<InseminationRecord[]> {
       }
     });
     
-    // Sort records on the server-side after fetching
+    // Sort records on the server-side after fetching and validation
     records.sort((a, b) => b.inseminationDate.getTime() - a.inseminationDate.getTime());
     
     return records;
