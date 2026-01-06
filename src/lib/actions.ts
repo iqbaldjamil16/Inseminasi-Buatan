@@ -44,7 +44,7 @@ export async function getInseminationRecords(): Promise<InseminationRecord[]> {
     records.sort((a, b) => {
       // Handle cases where dates might still be invalid after conversion
       if (!a.inseminationDate || !b.inseminationDate) return 0;
-      return b.inseminationDate.getTime() - a.inseminationDate.getTime();
+      return new Date(b.inseminationDate).getTime() - new Date(a.inseminationDate).getTime();
     });
     
     return records;
