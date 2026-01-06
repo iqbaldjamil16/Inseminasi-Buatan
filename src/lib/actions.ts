@@ -41,7 +41,11 @@ export async function getInseminationRecords(): Promise<InseminationRecord[]> {
     });
     
     // Sort records on the server-side after fetching and validation
-    records.sort((a, b) => b.inseminationDate.getTime() - a.inseminationDate.getTime());
+    records.sort((a, b) => {
+      // Handle cases where dates might still be invalid after conversion
+      if (!a.inseminationDate || !b.inseminationDate) return 0;
+      return b.inseminationDate.getTime() - a.inseminationDate.getTime();
+    });
     
     return records;
   } catch (error) {
