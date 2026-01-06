@@ -39,7 +39,7 @@ const sidebarNavItems = [
   { href: '/summary', icon: Sparkles, label: 'Ringkasan AI' },
 ];
 
-const headerNavItem = { href: '/records', icon: BookCopy, label: 'Catatan IB' };
+const headerNavItem = { href: '/records', icon: BookCopy, label: 'Data IB' };
 
 function NavContent() {
   const pathname = usePathname();
@@ -98,10 +98,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Sidebar>
 
         <div className="flex flex-col">
-          <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
+          <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background px-4 lg:h-[60px] lg:px-6">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="shrink-0">
+                <Button variant="outline" size="icon" className="shrink-0 bg-accent hover:bg-accent/90">
                   <PanelLeft className="h-5 w-5" />
                   <span className="sr-only">Toggle navigation menu</span>
                 </Button>
