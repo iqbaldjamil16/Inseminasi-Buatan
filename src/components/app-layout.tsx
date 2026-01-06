@@ -33,18 +33,19 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
-const navItems = [
+const sidebarNavItems = [
   { href: '/', icon: PenSquare, label: 'Input Data' },
-  { href: '/records', icon: BookCopy, label: 'Catatan IB' },
   { href: '/summary', icon: Sparkles, label: 'Ringkasan AI' },
 ];
+
+const headerNavItem = { href: '/records', icon: BookCopy, label: 'Catatan IB' };
 
 function NavContent() {
   const pathname = usePathname();
 
   return (
     <SidebarMenu>
-      {navItems.map((item) => (
+      {sidebarNavItems.map((item) => (
         <SidebarMenuItem key={item.href}>
           <Link href={item.href} passHref>
             <SidebarMenuButton
@@ -70,9 +71,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             case '/':
                 return 'PKH Mateng';
             case '/records':
-                return 'Catatan Inseminasi Buatan';
+                return 'PKH Mateng';
             case '/summary':
-                return 'Ringkasan & Saran AI';
+                return 'PKH Mateng';
             default:
                 return 'Dashboard';
         }
@@ -114,13 +115,39 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                   </Link>
                 </SidebarHeader>
                 <SidebarContent>
-                    <NavContent />
+                    <SidebarMenu>
+                      {/* Mobile nav includes all items */}
+                      {[...sidebarNavItems, headerNavItem].map((item) => (
+                        <SidebarMenuItem key={item.href}>
+                          <Link href={item.href} passHref>
+                            <SidebarMenuButton
+                              as="a"
+                              isActive={pathname === item.href}
+                              className="justify-start"
+                            >
+                              <item.icon className="h-5 w-5" />
+                              <span>{item.label}</span>
+                            </SidebarMenuButton>
+                          </Link>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
                 </SidebarContent>
               </SheetContent>
             </Sheet>
 
-            <div className="w-full flex-1">
+            <div className="w-full flex items-center justify-between">
               <h1 className="text-lg font-semibold">{getPageTitle()}</h1>
+              <nav className="hidden md:flex items-center gap-4">
+                  <Link href={headerNavItem.href} passHref>
+                      <Button variant={pathname === headerNavItem.href ? "secondary" : "ghost"} asChild>
+                          <a>
+                              <headerNavItem.icon className="h-4 w-4 mr-2" />
+                              {headerNavItem.label}
+                          </a>
+                      </Button>
+                  </Link>
+              </nav>
             </div>
 
           </header>
