@@ -10,7 +10,8 @@ import {
   PenSquare,
   BookCopy,
   Sparkles,
-  LayoutDashboard
+  LayoutDashboard,
+  PanelLeft,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -101,7 +102,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon" className="shrink-0 md:hidden">
-                  <Menu className="h-5 w-5" />
+                  <PanelLeft className="h-5 w-5" />
                   <span className="sr-only">Toggle navigation menu</span>
                 </Button>
               </SheetTrigger>
@@ -116,7 +117,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 </SidebarHeader>
                 <SidebarContent>
                     <SidebarMenu>
-                      {/* Mobile nav only includes sidebar items now */}
                       {sidebarNavItems.map((item) => (
                         <SidebarMenuItem key={item.href}>
                           <Link href={item.href} passHref>
