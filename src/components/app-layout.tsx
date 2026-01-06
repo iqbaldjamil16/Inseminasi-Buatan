@@ -110,8 +110,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                  <SidebarHeader className="p-4">
                   <Link href="/" className="flex items-center gap-3">
                     <Beef className="h-8 w-8 text-primary" />
+                    <SheetTitle className="sr-only">IB-Pro</SheetTitle>
                     <h1 className="text-xl font-headline font-bold text-sidebar-foreground">
-                      <SheetTitle className="sr-only">IB-Pro</SheetTitle>
                       IB-Pro
                     </h1>
                   </Link>
