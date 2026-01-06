@@ -33,8 +33,8 @@ import {
 
 export function RecordsTable({ initialData }: { initialData: InseminationRecord[] }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState<string>();
-  const [selectedYear, setSelectedYear] = useState<string>();
+  const [selectedMonth, setSelectedMonth] = useState<string | undefined>();
+  const [selectedYear, setSelectedYear] = useState<string | undefined>();
 
   const availableYears = useMemo(() => {
     const years = [];
@@ -161,7 +161,7 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
                         <div className="flex-1 text-left">
                             <div className="font-bold">{record.staffName}</div>
                             <div className="text-sm text-muted-foreground">{record.puskeswan}</div>
-                            <div className="text-xs text-muted-foreground pt-1">{record.inseminationDate ? format(new Date(record.inseminationDate), 'dd MMM yyyy', { locale: id }) : 'N/A'}</div>
+                            <div className="text-xs text-muted-foreground pt-1">{record.inseminationDate ? format(new Date(record.inseminationDate), 'dd/MM/yyyy') : 'N/A'}</div>
                         </div>
                         <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
                     </div>
@@ -211,7 +211,7 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
                 {filteredData.length > 0 ? (
                     filteredData.map((record) => (
                         <TableRow key={record.id}>
-                            <TableCell>{record.inseminationDate ? format(new Date(record.inseminationDate), 'dd MMM yyyy', { locale: id }) : 'N/A'}</TableCell>
+                            <TableCell>{record.inseminationDate ? format(new Date(record.inseminationDate), 'dd/MM/yyyy') : 'N/A'}</TableCell>
                             <TableCell>
                                 <div className="font-medium">{record.breederName}</div>
                                 <div className="text-sm text-muted-foreground">{record.breederId}</div>
