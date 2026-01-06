@@ -1,13 +1,10 @@
 import AppLayout from '@/components/app-layout';
-import DashboardClient from '@/components/dashboard-client';
-import { getInseminationRecords } from '@/lib/actions';
+import { InseminationForm } from '@/components/insemination-form';
 
-export default async function Home() {
-  const initialRecords = await getInseminationRecords();
-
+export default function Home() {
   return (
     <AppLayout>
-      <DashboardClient initialRecords={initialRecords} />
+      <InseminationForm />
     </AppLayout>
   );
 }
