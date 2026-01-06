@@ -101,7 +101,7 @@ export function InseminationForm() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="p-4">
+            <Card className="p-4 flex flex-col justify-center">
               <FormField
                 control={form.control}
                 name="inseminationDate"
@@ -146,7 +146,7 @@ export function InseminationForm() {
             </Card>
 
             {formFields.map((formField) => (
-              <Card key={formField.name} className="p-4">
+              <Card key={formField.name} className="p-4 flex flex-col justify-center">
                 <FormField
                   control={form.control}
                   name={formField.name}
