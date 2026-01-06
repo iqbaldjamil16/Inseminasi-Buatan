@@ -31,7 +31,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
 const sidebarNavItems = [
@@ -111,6 +111,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                   <Link href="/" className="flex items-center gap-3">
                     <Beef className="h-8 w-8 text-primary" />
                     <h1 className="text-xl font-headline font-bold text-sidebar-foreground">
+                      <SheetTitle className="sr-only">IB-Pro</SheetTitle>
                       IB-Pro
                     </h1>
                   </Link>
