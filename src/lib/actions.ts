@@ -26,6 +26,62 @@ export async function getInseminationRecords(): Promise<InseminationRecord[]> {
   try {
     const q = query(collection(db, 'inseminationRecords'));
     const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      // Return mock data if there are no records in Firestore
+      const mockData: InseminationRecord[] = [
+        {
+          id: 'mock-1',
+          inseminationDate: new Date('2024-05-20'),
+          staffName: 'Dr. Budi Santoso',
+          puskeswan: 'PKH Maju Jaya',
+          breederName: 'Ahmad Subarjo',
+          breederAddress: 'Jl. Merdeka No. 10, Desa Makmur',
+          phoneNumber: '081234567890',
+          breederId: '3501234567890001',
+          cowType: 'Simental',
+          cowId: 'SIM-00123',
+          strawType: 'Limosin',
+          strawId: 'LIM-A01',
+          strawBatchId: 'BCH-2024-01',
+          strawProducer: 'BBIB Singosari',
+        },
+        {
+          id: 'mock-2',
+          inseminationDate: new Date('2024-05-18'),
+          staffName: 'Dr. Siti Aminah',
+          puskeswan: 'PKH Sejahtera',
+          breederName: 'Rahmat Hidayat',
+          breederAddress: 'Dusun Sejahtera, RT 02/RW 01',
+          phoneNumber: '085678901234',
+          breederId: '3509876543210002',
+          cowType: 'Brahman',
+          cowId: 'BRH-00456',
+          strawType: 'Simental Super',
+          strawId: 'SIM-S02',
+          strawBatchId: 'BCH-2024-02',
+          strawProducer: 'BIB Lembang',
+        },
+        {
+          id: 'mock-3',
+          inseminationDate: new Date('2024-04-30'),
+          staffName: 'Dr. Budi Santoso',
+          puskeswan: 'PKH Maju Jaya',
+          breederName: 'Sumarni',
+          breederAddress: 'Jl. Pahlawan No. 5, Desa Jaya',
+          phoneNumber: '087890123456',
+          breederId: '3501234567890003',
+          cowType: 'Peranakan Ongole',
+          cowId: 'PO-00789',
+          strawType: 'Angus',
+          strawId: 'ANG-B03',
+          strawBatchId: 'BCH-2023-12',
+          strawProducer: 'BBIB Singosari',
+        },
+      ];
+      return mockData;
+    }
+
     const records: InseminationRecord[] = [];
     querySnapshot.forEach((doc) => {
       const data = doc.data();
