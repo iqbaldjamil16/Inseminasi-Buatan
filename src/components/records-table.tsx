@@ -16,7 +16,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Download, Search, Trash2, FilePenLine, ChevronDown } from 'lucide-react';
@@ -146,10 +146,6 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-            <Button onClick={exportToCSV} variant="outline" className="w-full sm:w-auto">
-                <Download className="mr-2 h-4 w-4" />
-                Export CSV
-            </Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -251,8 +247,12 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
             </Table>
         </div>
       </CardContent>
+      <CardFooter className="flex justify-end">
+        <Button onClick={exportToCSV} variant="outline">
+          <Download className="mr-2 h-4 w-4" />
+          Unduh Laporan
+        </Button>
+      </CardFooter>
     </Card>
   );
 }
-
-    
