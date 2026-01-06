@@ -34,11 +34,13 @@ import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { addDocumentNonBlocking, useFirestore } from '@/firebase';
 import { collection, serverTimestamp } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 
 export function InseminationForm() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { toast } = useToast();
   const firestore = useFirestore();
+  const router = useRouter();
 
   const form = useForm<InseminationRecord>({
     resolver: zodResolver(InseminationRecordSchema),
@@ -81,6 +83,7 @@ export function InseminationForm() {
         description: 'Data berhasil disimpan.',
       });
       form.reset();
+      router.push('/records');
     } catch (error) {
       console.error('Error saving record: ', error);
       toast({
