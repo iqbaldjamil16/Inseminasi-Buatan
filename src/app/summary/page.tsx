@@ -1,13 +1,10 @@
 import AppLayout from '@/components/app-layout';
 import { AiSummary } from '@/components/ai-summary';
-import { getInseminationRecords } from '@/lib/actions';
 
-export default async function SummaryPage() {
-  const records = await getInseminationRecords();
-
+export default function SummaryPage() {
   return (
     <AppLayout>
-      <AiSummary initialData={records} />
+      <AiSummary />
     </AppLayout>
   );
 }

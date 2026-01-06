@@ -4,7 +4,6 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { InseminationRecordSchema, type InseminationRecord } from '@/lib/types';
-import { saveInseminationRecord } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,10 +32,14 @@ import {
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { addDocumentNonBlocking, useFirestore } from '@/firebase';
+import { collection, serverTimestamp } from 'firebase/firestore';
 
 export function InseminationForm() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { toast } = useToast();
+  const firestore = useFirestore();
+
   const form = useForm<InseminationRecord>({
     resolver: zodResolver(InseminationRecordSchema),
     defaultValues: {
@@ -56,22 +59,37 @@ export function InseminationForm() {
   });
 
   async function onSubmit(data: InseminationRecord) {
-    setIsSubmitting(true);
-    const result = await saveInseminationRecord(data);
-    setIsSubmitting(false);
-
-    if (result.success) {
-      toast({
-        title: 'Sukses',
-        description: result.message,
-      });
-      form.reset();
-    } else {
+    if (!firestore) {
       toast({
         title: 'Error',
-        description: result.message,
+        description: 'Koneksi database tidak tersedia.',
         variant: 'destructive',
       });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const collectionRef = collection(firestore, 'inseminationRecords');
+      addDocumentNonBlocking(collectionRef, {
+        ...data,
+        createdAt: serverTimestamp(),
+      });
+
+      toast({
+        title: 'Sukses',
+        description: 'Data berhasil disimpan.',
+      });
+      form.reset();
+    } catch (error) {
+      console.error('Error saving record: ', error);
+      toast({
+        title: 'Error',
+        description: 'Gagal menyimpan data.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   }
 

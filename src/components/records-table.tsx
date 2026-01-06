@@ -21,7 +21,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Download, Search, Trash2, FilePenLine, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
 import {
   Select,
   SelectContent,
@@ -29,20 +28,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import { Skeleton } from './ui/skeleton';
 
 
-export function RecordsTable({ initialData }: { initialData: InseminationRecord[] }) {
+export function RecordsTable() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMonth, setSelectedMonth] = useState<string | undefined>();
   const [selectedYear, setSelectedYear] = useState<string | undefined>();
 
+  const firestore = useFirestore();
+
+  const recordsQuery = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'inseminationRecords') : null),
+    [firestore]
+  );
+  
+  const { data: recordsData, isLoading } = useCollection<InseminationRecord>(recordsQuery);
+
   const availableYears = useMemo(() => {
-    const years = [];
-    for (let year = 2026; year >= 2021; year--) {
-      years.push(year.toString());
+    const years = new Set<string>();
+    if (recordsData) {
+      recordsData.forEach(record => {
+        const date = (record.inseminationDate as any)?.toDate ? (record.inseminationDate as any).toDate() : new Date(record.inseminationDate);
+        if (date && !isNaN(date.getFullYear())) {
+           years.add(date.getFullYear().toString());
+        }
+      });
     }
-    return years;
-  }, []);
+    const staticYears = [];
+    for (let year = 2026; year >= 2021; year--) {
+      staticYears.push(year.toString());
+    }
+    return Array.from(new Set([...staticYears, ...Array.from(years)])).sort((a,b) => parseInt(b) - parseInt(a));
+  }, [recordsData]);
 
   const months = [
     { value: '0', label: 'Januari' }, { value: '1', label: 'Februari' }, { value: '2', label: 'Maret' },
@@ -52,8 +72,19 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
   ];
 
   const filteredData = useMemo(() => {
-    return initialData.filter(record => {
-      const recordDate = new Date(record.inseminationDate);
+    if (!recordsData) return [];
+
+    let records = recordsData.map(record => ({
+      ...record,
+      inseminationDate: (record.inseminationDate as any)?.toDate ? (record.inseminationDate as any).toDate() : new Date(record.inseminationDate)
+    })).sort((a, b) => b.inseminationDate.getTime() - a.inseminationDate.getTime());
+
+
+    return records.filter(record => {
+      if (!record.inseminationDate || isNaN(record.inseminationDate.getTime())) {
+          return false;
+      }
+      const recordDate = record.inseminationDate;
       const isMonthMatch = !selectedMonth || recordDate.getMonth().toString() === selectedMonth;
       const isYearMatch = !selectedYear || recordDate.getFullYear().toString() === selectedYear;
 
@@ -67,7 +98,7 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
 
       return isMonthMatch && isYearMatch && isSearchMatch;
     });
-  }, [searchTerm, initialData, selectedMonth, selectedYear]);
+  }, [searchTerm, recordsData, selectedMonth, selectedYear]);
   
   const exportToCSV = () => {
     const headers = [
@@ -105,6 +136,14 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
     <div className="flex justify-between text-sm py-1">
       <span className="text-muted-foreground">{label}</span>
       <span className="text-right font-medium">{value || '-'}</span>
+    </div>
+  );
+  
+  const TableSkeleton = () => (
+     <div className="space-y-2">
+      {[...Array(5)].map((_, i) => (
+        <Skeleton key={i} className="h-12 w-full" />
+      ))}
     </div>
   );
 
@@ -150,6 +189,8 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
         </div>
       </CardHeader>
       <CardContent>
+        {isLoading ? <TableSkeleton /> : (
+        <>
         {/* Mobile View */}
         <div className="md:hidden">
           <Accordion type="single" collapsible className="w-full space-y-4">
@@ -247,9 +288,11 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
             </TableBody>
             </Table>
         </div>
+        </>
+        )}
       </CardContent>
       <CardFooter className="flex justify-end">
-        <Button onClick={exportToCSV} variant="outline">
+        <Button onClick={exportToCSV} variant="outline" disabled={isLoading || filteredData.length === 0}>
           <Download className="mr-2 h-4 w-4" />
           Unduh Laporan
         </Button>
