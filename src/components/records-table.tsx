@@ -34,12 +34,15 @@ import {
 export function RecordsTable({ initialData }: { initialData: InseminationRecord[] }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMonth, setSelectedMonth] = useState<string>();
-  const [selectedYear, setSelectedYear] = useState<string>('all');
+  const [selectedYear, setSelectedYear] = useState<string>();
 
   const availableYears = useMemo(() => {
-    const years = new Set(initialData.map(record => new Date(record.inseminationDate).getFullYear().toString()));
-    return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
-  }, [initialData]);
+    const years = [];
+    for (let year = 2026; year >= 2021; year--) {
+      years.push(year.toString());
+    }
+    return years;
+  }, []);
 
   const months = [
     { value: '0', label: 'Januari' }, { value: '1', label: 'Februari' }, { value: '2', label: 'Maret' },
@@ -52,7 +55,7 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
     return initialData.filter(record => {
       const recordDate = new Date(record.inseminationDate);
       const isMonthMatch = !selectedMonth || recordDate.getMonth().toString() === selectedMonth;
-      const isYearMatch = selectedYear === 'all' || recordDate.getFullYear().toString() === selectedYear;
+      const isYearMatch = !selectedYear || recordDate.getFullYear().toString() === selectedYear;
 
       const isSearchMatch =
         searchTerm === '' ||
@@ -126,10 +129,9 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
                 </Select>
                  <Select onValueChange={setSelectedYear} value={selectedYear}>
                     <SelectTrigger>
-                        <SelectValue placeholder="Tahun" />
+                        <SelectValue placeholder="Pilih Tahun" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">Semua Tahun</SelectItem>
                         {availableYears.map(year => (
                             <SelectItem key={year} value={year}>{year}</SelectItem>
                         ))}
