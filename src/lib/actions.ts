@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { addDoc, collection, getDocs, query, serverTimestamp, orderBy } from 'firebase/firestore';
+import { addDoc, collection, getDocs, query, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
 import type { InseminationRecord } from './types';
 import { summarizeBreedingProgram } from '@/ai/flows/summarize-breeding-program';
@@ -24,7 +24,6 @@ export async function saveInseminationRecord(record: InseminationRecord) {
 
 export async function getInseminationRecords(): Promise<InseminationRecord[]> {
   try {
-    // Remove orderBy from the query to prevent invalid argument errors
     const q = query(collection(db, 'inseminationRecords'));
     const querySnapshot = await getDocs(q);
     const records: InseminationRecord[] = [];
@@ -39,7 +38,7 @@ export async function getInseminationRecords(): Promise<InseminationRecord[]> {
         } as InseminationRecord);
       }
     });
-    // Sort records on the client side
+    // Sort records on the client side by date in descending order
     records.sort((a, b) => b.inseminationDate.getTime() - a.inseminationDate.getTime());
     return records;
   } catch (error) {
