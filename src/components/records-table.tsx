@@ -33,8 +33,8 @@ import {
 
 export function RecordsTable({ initialData }: { initialData: InseminationRecord[] }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState<string>('');
-  const [selectedYear, setSelectedYear] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [selectedYear, setSelectedYear] = useState<string>('all');
 
   const availableYears = useMemo(() => {
     const years = new Set(initialData.map(record => new Date(record.inseminationDate).getFullYear().toString()));
@@ -51,8 +51,8 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
   const filteredData = useMemo(() => {
     return initialData.filter(record => {
       const recordDate = new Date(record.inseminationDate);
-      const isMonthMatch = selectedMonth === '' || recordDate.getMonth().toString() === selectedMonth;
-      const isYearMatch = selectedYear === '' || recordDate.getFullYear().toString() === selectedYear;
+      const isMonthMatch = selectedMonth === 'all' || recordDate.getMonth().toString() === selectedMonth;
+      const isYearMatch = selectedYear === 'all' || recordDate.getFullYear().toString() === selectedYear;
 
       const isSearchMatch =
         searchTerm === '' ||
@@ -119,7 +119,7 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
                         <SelectValue placeholder="Bulan" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">Semua Bulan</SelectItem>
+                        <SelectItem value="all">Semua Bulan</SelectItem>
                         {months.map(month => (
                             <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
                         ))}
@@ -130,7 +130,7 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
                         <SelectValue placeholder="Tahun" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">Semua Tahun</SelectItem>
+                        <SelectItem value="all">Semua Tahun</SelectItem>
                         {availableYears.map(year => (
                             <SelectItem key={year} value={year}>{year}</SelectItem>
                         ))}
@@ -254,3 +254,5 @@ export function RecordsTable({ initialData }: { initialData: InseminationRecord[
     </Card>
   );
 }
+
+    
