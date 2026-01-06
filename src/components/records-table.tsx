@@ -405,7 +405,7 @@ export function RecordsTable() {
         )}
       </CardContent>
       <CardFooter className="flex justify-end">
-        <Button onClick={exportToCSV} variant="outline" disabled={isLoading || filteredData.length === 0}>
+        <Button onClick={exportToCSV} disabled={isLoading || filteredData.length === 0}>
           <Download className="mr-2 h-4 w-4" />
           Unduh Laporan
         </Button>
