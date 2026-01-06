@@ -61,6 +61,7 @@ import { useCollection, useFirestore, useMemoFirebase, useUser, updateDocumentNo
 import { collection, doc } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from './ui/scroll-area';
 
 
 export function RecordsTable() {
@@ -127,11 +128,13 @@ export function RecordsTable() {
   };
   
   const displayData = useMemo(() => {
-    if (!recordsData || recordsData.length === 0) {
-        return [
-            { id: '1', inseminationDate: new Date('2024-05-20'), staffName: 'Dr. Budi', puskeswan: 'Puskeswan Topoyo', breederName: 'Pak Eko', breederAddress: 'Jl. Merdeka No. 10', phoneNumber: '081234567890', breederId: '1234567890123456', cowType: 'Simental', cowId: 'SIM-001', strawType: 'Simental', strawId: 'ST-001', strawBatchId: 'B-001', strawProducer: 'BBIB Singosari' },
-            { id: '2', inseminationDate: new Date('2024-05-22'), staffName: 'Dr. Ani', puskeswan: 'Puskeswan Budong-Budong', breederName: 'Bu Siti', breederAddress: 'Jl. Pahlawan No. 5', phoneNumber: '081234567891', breederId: '1234567890123457', cowType: 'Limosin', cowId: 'LIM-002', strawType: 'Limosin', strawId: 'LT-002', strawBatchId: 'B-002', strawProducer: 'BBIB Lembang' },
-        ]
+    if (!recordsData) return [];
+
+    if (recordsData.length === 0) {
+      return [
+          { id: '1', inseminationDate: new Date('2024-05-20'), staffName: 'Dr. Budi', puskeswan: 'Puskeswan Topoyo', breederName: 'Pak Eko', breederAddress: 'Jl. Merdeka No. 10', phoneNumber: '081234567890', breederId: '1234567890123456', cowType: 'Simental', cowId: 'SIM-001', strawType: 'Simental', strawId: 'ST-001', strawBatchId: 'B-001', strawProducer: 'BBIB Singosari' },
+          { id: '2', inseminationDate: new Date('2024-05-22'), staffName: 'Dr. Ani', puskeswan: 'Puskeswan Budong-Budong', breederName: 'Bu Siti', breederAddress: 'Jl. Pahlawan No. 5', phoneNumber: '081234567891', breederId: '1234567890123457', cowType: 'Limosin', cowId: 'LIM-002', strawType: 'Limosin', strawId: 'LT-002', strawBatchId: 'B-002', strawProducer: 'BBIB Lembang' },
+      ]
     }
     return recordsData;
   }, [recordsData])
@@ -173,13 +176,13 @@ export function RecordsTable() {
       const isMonthMatch = selectedMonth === 'all' || recordDate.getMonth().toString() === selectedMonth;
       const isYearMatch = selectedYear === 'all' || recordDate.getFullYear().toString() === selectedYear;
 
+      const searchTermLower = searchTerm.toLowerCase();
       const isSearchMatch =
         searchTerm === '' ||
-        (record.breederName && record.breederName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (record.breederId && record.breederId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (record.phoneNumber && record.phoneNumber.includes(searchTerm)) ||
-        (record.cowId && record.cowId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (record.staffName && record.staffName.toLowerCase().includes(searchTerm.toLowerCase()));
+        (record.breederName && record.breederName.toLowerCase().includes(searchTermLower)) ||
+        (record.breederId && record.breederId.includes(searchTerm)) ||
+        (record.cowId && record.cowId.toLowerCase().includes(searchTermLower)) ||
+        (format(recordDate, 'dd/MM/yyyy').includes(searchTermLower));
 
       return isMonthMatch && isYearMatch && isSearchMatch;
     });
@@ -264,7 +267,7 @@ export function RecordsTable() {
         </CardDescription>
         <div className="flex flex-col sm:flex-row items-center gap-2 pt-4">
             <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex-1">
-                 <Select onValueChange={setSelectedMonth} value={selectedMonth === 'all' ? undefined : selectedMonth}>
+                 <Select onValueChange={setSelectedMonth} value={selectedMonth}>
                     <SelectTrigger>
                         <SelectValue placeholder="Pilih Bulan" />
                     </SelectTrigger>
@@ -275,7 +278,7 @@ export function RecordsTable() {
                         ))}
                     </SelectContent>
                 </Select>
-                 <Select onValueChange={setSelectedYear} value={selectedYear === 'all' ? undefined : selectedYear}>
+                 <Select onValueChange={setSelectedYear} value={selectedYear}>
                     <SelectTrigger>
                         <SelectValue placeholder="Pilih Tahun" />
                     </SelectTrigger>
@@ -290,7 +293,7 @@ export function RecordsTable() {
             <div className="relative w-full sm:w-auto sm:flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
-                    placeholder="Cari data..."
+                    placeholder="Cari nama, eartag, KTP, atau tanggal..."
                     className="pl-10"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -300,9 +303,9 @@ export function RecordsTable() {
       </CardHeader>
       <CardContent>
         {isLoading ? <TableSkeleton /> : (
-        <>
+        <ScrollArea className="h-[60vh]">
         {/* Mobile View */}
-        <div className="md:hidden">
+        <div className="md:hidden pr-4">
           <Accordion type="single" collapsible className="w-full space-y-4">
             {filteredData.length > 0 ? (
               filteredData.map((record) => (
@@ -346,7 +349,7 @@ export function RecordsTable() {
         </div>
 
         {/* Desktop View */}
-        <div className="hidden md:block border rounded-md">
+        <div className="hidden md:block">
             <Table>
             <TableHeader>
                 <TableRow>
@@ -398,7 +401,7 @@ export function RecordsTable() {
             </TableBody>
             </Table>
         </div>
-        </>
+        </ScrollArea>
         )}
       </CardContent>
       <CardFooter className="flex justify-end">
@@ -517,3 +520,5 @@ export function RecordsTable() {
     </>
   );
 }
+
+    
