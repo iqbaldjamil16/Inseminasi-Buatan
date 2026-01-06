@@ -127,13 +127,14 @@ export function RecordsTable() {
   };
   
   const displayData = useMemo(() => {
-    if (isLoading || !recordsData) return [];
-    if (recordsData && recordsData.length > 0) {
-        return recordsData;
+    if (!recordsData || recordsData.length === 0) {
+        return [
+            { id: '1', inseminationDate: new Date('2024-05-20'), staffName: 'Dr. Budi', puskeswan: 'Puskeswan Topoyo', breederName: 'Pak Eko', breederAddress: 'Jl. Merdeka No. 10', phoneNumber: '081234567890', breederId: '1234567890123456', cowType: 'Simental', cowId: 'SIM-001', strawType: 'Simental', strawId: 'ST-001', strawBatchId: 'B-001', strawProducer: 'BBIB Singosari' },
+            { id: '2', inseminationDate: new Date('2024-05-22'), staffName: 'Dr. Ani', puskeswan: 'Puskeswan Budong-Budong', breederName: 'Bu Siti', breederAddress: 'Jl. Pahlawan No. 5', phoneNumber: '081234567891', breederId: '1234567890123457', cowType: 'Limosin', cowId: 'LIM-002', strawType: 'Limosin', strawId: 'LT-002', strawBatchId: 'B-002', strawProducer: 'BBIB Lembang' },
+        ]
     }
-    // Return empty array if no data and not loading, sample data is removed
-    return [];
-  }, [recordsData, isLoading])
+    return recordsData;
+  }, [recordsData])
 
 
   const availableYears = useMemo(() => {
@@ -274,7 +275,7 @@ export function RecordsTable() {
                         ))}
                     </SelectContent>
                 </Select>
-                 <Select onValueChange={setSelectedYear} value={selectedYear}>
+                 <Select onValueChange={setSelectedYear} value={selectedYear === 'all' ? undefined : selectedYear}>
                     <SelectTrigger>
                         <SelectValue placeholder="Pilih Tahun" />
                     </SelectTrigger>
