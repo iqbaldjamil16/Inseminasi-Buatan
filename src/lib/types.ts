@@ -35,6 +35,6 @@ export const InseminationRecordSchema = z.object({
   strawBatchId: z.string().min(1, { message: 'ID batch straw harus diisi.' }),
   strawProducer: z.string().min(1, { message: 'Produsen straw harus diisi.' }),
   createdAt: z.any().optional(),
-});
+}).partial();
 
 export type InseminationRecord = z.infer<typeof InseminationRecordSchema>;
