@@ -65,6 +65,7 @@ export function InseminationForm() {
   const watchStaffName = form.watch('staffName');
   const watchCowType = form.watch('cowType');
   const watchStrawType = form.watch('strawType');
+  const watchStrawProducer = form.watch('strawProducer');
 
 
   const topoyoVillages = [
@@ -204,6 +205,10 @@ export function InseminationForm() {
     'Sapi Angus', 'Sapi Bali', 'Sapi Brahman', 'Sapi Donggala', 
     'Sapi Limosin', 'Sapi Madura', 'Sapi Simental'
   ].sort();
+
+  const producerOptions = [
+    'BIB Lembang', 'BIB Maros', 'BIB Singosari'
+  ].sort();
   
   const getVillageOptions = () => {
     switch (watchPuskeswan) {
@@ -255,20 +260,15 @@ export function InseminationForm() {
   const isOtherStaff = showStaffDropdown && watchStaffName === 'Lainnya';
   const isOtherCowType = watchCowType === 'Lainnya';
   const isOtherStrawType = watchStrawType === 'Lainnya';
-
+  const isOtherStrawProducer = watchStrawProducer === 'Lainnya';
 
   const formFields = [
-    // staffName is now conditional
     { name: 'breederName', label: 'Nama Peternak' },
-    // breederAddress is conditional
     { name: 'phoneNumber', label: 'Nomor HP' },
     { name: 'breederId', label: 'ID Peternak (KTP)' },
-    // cowType is conditional
     { name: 'cowId', label: 'ID Indukan (Eartag)' },
-    // strawType is conditional
     { name: 'strawId', label: 'ID Pejantan Straw' },
     { name: 'strawBatchId', label: 'ID Batch Straw' },
-    { name: 'strawProducer', label: 'Produsen Straw' },
   ] as const;
 
   return (
@@ -338,7 +338,6 @@ export function InseminationForm() {
             />
           </Card>
 
-          {/* Conditional Staff Name Field */}
           <Card className="p-4 flex flex-col justify-center">
             <FormField
               control={form.control}
@@ -381,7 +380,6 @@ export function InseminationForm() {
             />
           </Card>
 
-          {/* Conditional Address Field */}
           <Card className="p-4 flex flex-col justify-center">
              <FormField
                 control={form.control}
@@ -442,7 +440,6 @@ export function InseminationForm() {
             </Card>
           ))}
 
-          {/* Cow Type Field */}
           <Card className="p-4 flex flex-col justify-center">
             <FormField
               control={form.control}
@@ -477,7 +474,6 @@ export function InseminationForm() {
             />
           </Card>
           
-          {/* Renders cowId */}
           <Card className="p-4 flex flex-col justify-center">
             <FormField
               control={form.control}
@@ -494,7 +490,6 @@ export function InseminationForm() {
             />
           </Card>
 
-          {/* Straw Type Field */}
           <Card className="p-4 flex flex-col justify-center">
             <FormField
               control={form.control}
@@ -529,8 +524,7 @@ export function InseminationForm() {
             />
           </Card>
 
-          {/* Renders remaining fields after strawType */}
-          {formFields.slice(5).map((formField) => (
+          {formFields.slice(4).map((formField) => (
             <Card key={formField.name} className="p-4 flex flex-col justify-center">
               <FormField
                 control={form.control}
@@ -547,6 +541,40 @@ export function InseminationForm() {
               />
             </Card>
           ))}
+          
+          <Card className="p-4 flex flex-col justify-center">
+            <FormField
+              control={form.control}
+              name="strawProducer"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Produsen Straw</FormLabel>
+                   <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Produsen" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {producerOptions.map((producer) => (
+                        <SelectItem key={producer} value={producer}>{producer}</SelectItem>
+                      ))}
+                      <SelectItem value="Lainnya">Lainnya</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {isOtherStrawProducer && (
+                    <FormControl className="mt-2">
+                      <Input
+                        placeholder="Masukkan produsen straw"
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Card>
         </div>
         <CardFooter className="flex justify-end px-0 pt-6">
           <Button type="submit" disabled={isSubmitting}>
