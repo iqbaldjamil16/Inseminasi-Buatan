@@ -265,8 +265,8 @@ export function RecordsTable() {
         <div className="flex items-center justify-between">
             <CardTitle>Catatan Inseminasi Buatan</CardTitle>
             <Link href="/" passHref>
-                <Button asChild variant="default" size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
-                    <a><Undo2 className="h-5 w-5" /></a>
+                <Button variant="default" size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Undo2 className="h-5 w-5" />
                 </Button>
             </Link>
         </div>
@@ -530,4 +530,5 @@ export function RecordsTable() {
 }
 
     
+
 
