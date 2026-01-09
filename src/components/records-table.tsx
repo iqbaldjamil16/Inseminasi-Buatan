@@ -298,8 +298,8 @@ export function RecordsTable() {
   return (
     <div className="space-y-6">
       <Button
-        variant="default"
-        className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg z-50"
+        variant="ghost"
+        className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg z-50 bg-background/80 backdrop-blur-sm"
         aria-label="Kembali ke halaman utama"
         onClick={() => router.back()}
       >
@@ -569,3 +569,5 @@ export function RecordsTable() {
     </div>
   );
 }
+
+    
