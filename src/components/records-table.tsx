@@ -260,7 +260,7 @@ export function RecordsTable() {
   ];
 
   return (
-    <>
+    <div className="space-y-6">
       <Button
         variant="default"
         className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg z-50"
@@ -271,9 +271,7 @@ export function RecordsTable() {
       </Button>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-              <CardTitle>Catatan Inseminasi Buatan</CardTitle>
-          </div>
+          <CardTitle>Catatan Inseminasi Buatan</CardTitle>
           <CardDescription>
             Lihat, cari, dan ekspor semua data inseminasi yang telah tercatat.
           </CardDescription>
@@ -313,9 +311,12 @@ export function RecordsTable() {
               </div>
           </div>
         </CardHeader>
-        <CardContent>
+      </Card>
+      
+      <Card>
+        <CardContent className="pt-6">
           {isLoading ? <TableSkeleton /> : (
-          <ScrollArea className="h-[calc(100vh-320px)] md:h-[calc(100vh-300px)]">
+          <ScrollArea className="h-[calc(100vh-420px)] md:h-[calc(100vh-400px)]">
           {/* Mobile View */}
           <div className="md:hidden pr-4">
             <Accordion type="single" collapsible className="w-full space-y-4">
@@ -529,6 +530,6 @@ export function RecordsTable() {
               </AlertDialogFooter>
           </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }
