@@ -60,6 +60,17 @@ export function InseminationForm() {
     },
   });
 
+  const watchPuskeswan = form.watch('puskeswan');
+  const watchBreederAddress = form.watch('breederAddress');
+
+  React.useEffect(() => {
+    if (watchPuskeswan !== 'Puskeswan Topoyo') {
+      if (watchBreederAddress && topoyoVillages.includes(watchBreederAddress)) {
+        form.setValue('breederAddress', '');
+      }
+    }
+  }, [watchPuskeswan, watchBreederAddress, form]);
+
   async function onSubmit(data: InseminationRecord) {
     if (!firestore) {
       toast({
@@ -104,10 +115,20 @@ export function InseminationForm() {
     'Puskeswan Topoyo',
   ];
 
+  const topoyoVillages = [
+    'Desa Bambamanurug', 'Desa Budong-Budong', 'Desa Kabubu', 'Desa Pangalloang', 
+    'Desa Paraili', 'Desa Salule\'bo', 'Desa Salupangkang', 'Desa Salupangkang IV', 
+    'Desa Sinabatta', 'Desa Tabolang', 'Desa Tangkau', 'Desa Tappilina', 
+    'Desa Topoyo', 'Desa Tumbu', 'Desa Waeputeh'
+  ];
+
+  const isOtherAddress = watchPuskeswan === 'Puskeswan Topoyo' && watchBreederAddress === 'Lainnya';
+  const showVillageSelect = watchPuskeswan === 'Puskeswan Topoyo';
+
   const formFields = [
     { name: 'staffName', label: 'Nama Petugas' },
     { name: 'breederName', label: 'Nama Peternak' },
-    { name: 'breederAddress', label: 'Alamat Peternak' },
+    // Alamat Peternak is handled conditionally
     { name: 'phoneNumber', label: 'Nomor HP' },
     { name: 'breederId', label: 'ID Peternak (KTP)' },
     { name: 'cowType', label: 'Jenis Sapi Indukan' },
@@ -161,7 +182,10 @@ export function InseminationForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Puskeswan</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={(value) => {
+                      field.onChange(value);
+                      form.setValue('breederAddress', '');
+                    }} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih Puskeswan" />
@@ -181,6 +205,49 @@ export function InseminationForm() {
             />
           </Card>
 
+          {/* Conditional Address Field */}
+          <Card className="p-4 flex flex-col justify-center">
+             <FormField
+                control={form.control}
+                name="breederAddress"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Alamat Peternak</FormLabel>
+                    {showVillageSelect ? (
+                      <>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih Desa" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {topoyoVillages.map((village) => (
+                              <SelectItem key={village} value={village}>{village}</SelectItem>
+                            ))}
+                            <SelectItem value="Lainnya">Lainnya</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {isOtherAddress && (
+                           <FormControl className="mt-2">
+                             <Input 
+                               placeholder="Masukkan alamat lengkap" 
+                               onChange={(e) => field.onChange(e.target.value)} 
+                             />
+                           </FormControl>
+                         )}
+                      </>
+                    ) : (
+                      <FormControl>
+                        <Input placeholder="Masukkan alamat lengkap" {...field} />
+                      </FormControl>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+          </Card>
+
           {formFields.map((formField) => (
             <Card key={formField.name} className="p-4 flex flex-col justify-center">
               <FormField
@@ -190,7 +257,7 @@ export function InseminationForm() {
                   <FormItem>
                     <FormLabel>{formField.label}</FormLabel>
                     <FormControl>
-                      <Input placeholder={`Masukkan ${formField.label.toLowerCase()}`} {...field} />
+                      <Input placeholder={`Masukkan ${formField.label.toLowerCase()}`} {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
