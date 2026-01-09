@@ -141,10 +141,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               <nav className="flex items-center gap-2 sm:gap-4">
                   <Link href={headerNavItem.href}>
                       <Button variant="outline" className={cn(
-                          "font-semibold border-black transition-colors",
+                          "font-semibold transition-colors",
                           pathname === headerNavItem.href 
                             ? "bg-accent text-accent-foreground ring-2 ring-accent"
-                            : "bg-white text-primary hover:bg-accent/80 hover:text-accent-foreground"
+                            : "bg-white text-primary hover:bg-accent/80 hover:text-accent-foreground border-black"
                       )}>
                           <headerNavItem.icon className="h-4 w-4 mr-2" />
                           <span>{headerNavItem.label}</span>
