@@ -131,13 +131,6 @@ export function RecordsTable() {
   
   const displayData = useMemo(() => {
     if (!recordsData) return [];
-
-    if (recordsData.length === 0) {
-      return [
-          { id: '1', inseminationDate: new Date('2024-05-20'), staffName: 'Dr. Budi', puskeswan: 'Puskeswan Topoyo', breederName: 'Pak Eko', breederAddress: 'Jl. Merdeka No. 10', phoneNumber: '081234567890', breederId: '1234567890123456', cowType: 'Simental', cowId: 'SIM-001', strawType: 'Simental', strawId: 'ST-001', strawBatchId: 'B-001', strawProducer: 'BBIB Singosari' },
-          { id: '2', inseminationDate: new Date('2024-05-22'), staffName: 'Dr. Ani', puskeswan: 'Puskeswan Budong-Budong', breederName: 'Bu Siti', breederAddress: 'Jl. Pahlawan No. 5', phoneNumber: '081234567891', breederId: '1234567890123457', cowType: 'Limosin', cowId: 'LIM-002', strawType: 'Limosin', strawId: 'LT-002', strawBatchId: 'B-002', strawProducer: 'BBIB Lembang' },
-      ]
-    }
     return recordsData;
   }, [recordsData])
 
@@ -191,64 +184,53 @@ export function RecordsTable() {
   }, [searchTerm, displayData, selectedMonth, selectedYear]);
   
   const exportToCSV = () => {
-    const recordsToExport = [...filteredData];
-
-    const groupedByStaff = recordsToExport.reduce((acc, record) => {
-        const staffName = record.staffName || 'Lainnya';
-        if (!acc[staffName]) {
-            acc[staffName] = [];
-        }
-        acc[staffName].push(record);
-        return acc;
-    }, {} as Record<string, InseminationRecord[]>);
-
-    const sortedStaffNames = Object.keys(groupedByStaff).sort();
-
     const headers = [
         'Tanggal IB', 'Nama Petugas', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
         'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
     ];
-    let csvContent = '';
+    
+    // Function to safely quote values for CSV
+    const escapeCsvValue = (value: any) => {
+        if (value === null || value === undefined) {
+            return '';
+        }
+        const stringValue = String(value);
+        // If the value contains a comma, double quote, or newline, wrap it in double quotes.
+        if (/[",\n]/.test(stringValue)) {
+            return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
+    };
 
-    sortedStaffNames.forEach(staffName => {
-        csvContent += `Laporan untuk: ${staffName}\n`;
-        csvContent += headers.join(',') + '\n';
+    const rows = filteredData.map(record => [
+        record.inseminationDate ? format(new Date(record.inseminationDate), 'yyyy-MM-dd') : '',
+        record.staffName,
+        record.puskeswan,
+        record.breederName,
+        record.breederAddress,
+        record.phoneNumber,
+        `'${record.breederId}`, // Prepending ' to force Excel to treat as text
+        record.cowType,
+        record.cowId,
+        record.strawType,
+        record.strawId,
+        record.strawBatchId,
+        record.strawProducer,
+    ].map(escapeCsvValue).join(','));
+    
+    let csvContent = headers.join(',') + '\n' + rows.join('\n');
 
-        const staffRecords = groupedByStaff[staffName].sort((a, b) => {
-            const dateA = a.inseminationDate instanceof Date ? a.inseminationDate.getTime() : 0;
-            const dateB = b.inseminationDate instanceof Date ? b.inseminationDate.getTime() : 0;
-            return dateA - dateB;
-        });
-
-        const rows = staffRecords.map(record => [
-            record.inseminationDate ? format(new Date(record.inseminationDate), 'yyyy-MM-dd') : '',
-            record.staffName,
-            record.puskeswan,
-            record.breederName,
-            `"${(record.breederAddress || '').replace(/"/g, '""')}"`,
-            record.phoneNumber,
-            `'${record.breederId}`,
-            record.cowType,
-            record.cowId,
-            record.strawType,
-            record.strawId,
-            record.strawBatchId,
-            record.strawProducer,
-        ].join(','));
-        
-        csvContent += rows.join('\n');
-        csvContent += '\n\n';
-    });
-
-    const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+    // Add BOM for Excel compatibility
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `IB-Pro_Records_Grouped_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `IB-Pro_Records_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
+
 
   const RecordDetailRow = ({ label, value }: { label: string, value: string | number | undefined }) => (
     <div className="flex justify-between text-sm py-1">
@@ -289,14 +271,6 @@ export function RecordsTable() {
 
   return (
     <div className="space-y-6">
-      <Button
-        variant="ghost"
-        className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg z-50 bg-background/80 backdrop-blur-sm"
-        aria-label="Kembali ke halaman utama"
-        onClick={() => router.back()}
-      >
-        <CornerUpLeft className="h-7 w-7" />
-      </Button>
       <Card>
         <CardHeader>
           <CardTitle>Catatan Inseminasi Buatan</CardTitle>
@@ -561,5 +535,3 @@ export function RecordsTable() {
     </div>
   );
 }
-
-    
