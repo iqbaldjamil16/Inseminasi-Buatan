@@ -62,7 +62,7 @@ import { collection, doc } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 
 export function RecordsTable() {
@@ -72,6 +72,7 @@ export function RecordsTable() {
   const [editingRecord, setEditingRecord] = useState<InseminationRecord | null>(null);
   const [deletingRecord, setDeletingRecord] = useState<InseminationRecord | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const router = useRouter();
 
   const firestore = useFirestore();
   const { user } = useUser();
@@ -260,11 +261,14 @@ export function RecordsTable() {
 
   return (
     <>
-      <Link href="/" passHref>
-        <Button asChild variant="default" size="icon" className="fixed bottom-6 left-6 h-14 w-14 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg z-50">
-           <CornerUpLeft className="h-7 w-7" />
-        </Button>
-      </Link>
+      <Button
+        variant="default"
+        className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg z-50"
+        aria-label="Kembali ke halaman utama"
+        onClick={() => router.back()}
+      >
+        <CornerUpLeft className="h-7 w-7" />
+      </Button>
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
