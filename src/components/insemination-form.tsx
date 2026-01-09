@@ -63,18 +63,41 @@ export function InseminationForm() {
   const watchPuskeswan = form.watch('puskeswan');
   const watchBreederAddress = form.watch('breederAddress');
 
+  const topoyoVillages = [
+    'Desa Bambamanurug', 'Desa Budong-Budong', 'Desa Kabubu', 'Desa Pangalloang', 
+    'Desa Paraili', 'Desa Salule\'bo', 'Desa Salupangkang', 'Desa Salupangkang IV', 
+    'Desa Sinabatta', 'Desa Tabolang', 'Desa Tangkau', 'Desa Tappilina', 
+    'Desa Topoyo', 'Desa Tumbu', 'Desa Waeputeh'
+  ];
+
+  const tobadakVillages = [
+    'Desa Bambadaru', 'Desa Batu Parigi', 'Desa Mahahe', 'Desa Polongaan', 
+    'Desa Saluadak', 'Desa Sejati', 'Desa Sulobaja', 'Desa Tobadak'
+  ];
+  
+  const pangaleVillages = [
+      'Desa Kombiling', 'Desa Kuo', 'Desa Lamba-lamba', 'Desa Lemo-Lemo', 
+      'Desa Pangale', 'Desa Polo Camba', 'Desa Polo Lereng', 'Desa Polo Pangale', 
+      'Desa Sartanamaju'
+  ];
+
   React.useEffect(() => {
-    if (watchPuskeswan !== 'Puskeswan Topoyo' && watchPuskeswan !== 'Puskeswan Tobadak') {
-      if (watchBreederAddress && (topoyoVillages.includes(watchBreederAddress) || tobadakVillages.includes(watchBreederAddress))) {
-        form.setValue('breederAddress', '');
+    const puskeswanVillageMap: Record<string, string[]> = {
+      'Puskeswan Topoyo': topoyoVillages,
+      'Puskeswan Tobadak': tobadakVillages,
+      'Puskeswan Pangale': pangaleVillages,
+    };
+    const selectedVillages = puskeswanVillageMap[watchPuskeswan];
+
+    if (!selectedVillages && watchBreederAddress) {
+      if ([...topoyoVillages, ...tobadakVillages, ...pangaleVillages].includes(watchBreederAddress)) {
+         form.setValue('breederAddress', '');
       }
-    } else if (watchPuskeswan === 'Puskeswan Topoyo' && tobadakVillages.includes(watchBreederAddress)){
-        form.setValue('breederAddress', '');
-    }
-     else if (watchPuskeswan === 'Puskeswan Tobadak' && topoyoVillages.includes(watchBreederAddress)){
-        form.setValue('breederAddress', '');
+    } else if (selectedVillages && watchBreederAddress && !selectedVillages.includes(watchBreederAddress) && watchBreederAddress !== 'Lainnya') {
+       form.setValue('breederAddress', '');
     }
   }, [watchPuskeswan, watchBreederAddress, form]);
+
 
   async function onSubmit(data: InseminationRecord) {
     if (!firestore) {
@@ -119,23 +142,23 @@ export function InseminationForm() {
     'Puskeswan Tobadak',
     'Puskeswan Topoyo',
   ];
-
-  const topoyoVillages = [
-    'Desa Bambamanurug', 'Desa Budong-Budong', 'Desa Kabubu', 'Desa Pangalloang', 
-    'Desa Paraili', 'Desa Salule\'bo', 'Desa Salupangkang', 'Desa Salupangkang IV', 
-    'Desa Sinabatta', 'Desa Tabolang', 'Desa Tangkau', 'Desa Tappilina', 
-    'Desa Topoyo', 'Desa Tumbu', 'Desa Waeputeh'
-  ];
-
-  const tobadakVillages = [
-    'Desa Bambadaru', 'Desa Batu Parigi', 'Desa Mahahe', 'Desa Polongaan', 
-    'Desa Saluadak', 'Desa Sejati', 'Desa Sulobaja', 'Desa Tobadak'
-  ];
   
-  const villageOptions = watchPuskeswan === 'Puskeswan Topoyo' ? topoyoVillages : tobadakVillages;
+  const getVillageOptions = () => {
+    switch (watchPuskeswan) {
+        case 'Puskeswan Topoyo':
+            return topoyoVillages;
+        case 'Puskeswan Tobadak':
+            return tobadakVillages;
+        case 'Puskeswan Pangale':
+            return pangaleVillages;
+        default:
+            return [];
+    }
+  };
 
-  const isOtherAddress = (watchPuskeswan === 'Puskeswan Topoyo' || watchPuskeswan === 'Puskeswan Tobadak') && watchBreederAddress === 'Lainnya';
-  const showVillageDropdown = watchPuskeswan === 'Puskeswan Topoyo' || watchPuskeswan === 'Puskeswan Tobadak';
+  const villageOptions = getVillageOptions();
+  const showVillageDropdown = ['Puskeswan Topoyo', 'Puskeswan Tobadak', 'Puskeswan Pangale'].includes(watchPuskeswan);
+  const isOtherAddress = showVillageDropdown && watchBreederAddress === 'Lainnya';
 
   const formFields = [
     { name: 'staffName', label: 'Nama Petugas' },
@@ -288,3 +311,5 @@ export function InseminationForm() {
     </Form>
   );
 }
+
+    
