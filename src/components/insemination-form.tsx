@@ -63,6 +63,8 @@ export function InseminationForm() {
   const watchPuskeswan = form.watch('puskeswan');
   const watchBreederAddress = form.watch('breederAddress');
   const watchStaffName = form.watch('staffName');
+  const watchCowType = form.watch('cowType');
+
 
   const topoyoVillages = [
     'Desa Bambamanurug', 'Desa Budong-Budong', 'Desa Kabubu', 'Desa Pangalloang', 
@@ -196,6 +198,11 @@ export function InseminationForm() {
     'Puskeswan Tobadak',
     'Puskeswan Topoyo',
   ];
+
+  const cowTypeOptions = [
+    'Sapi Angus', 'Sapi Bali', 'Sapi Brahman', 'Sapi Donggala', 
+    'Sapi Limosin', 'Sapi Madura', 'Sapi Simental'
+  ].sort();
   
   const getVillageOptions = () => {
     switch (watchPuskeswan) {
@@ -245,6 +252,7 @@ export function InseminationForm() {
   
   const showStaffDropdown = ['Puskeswan Budong-Budong', 'Puskeswan Karossa', 'Puskeswan Pangale', 'Puskeswan Tobadak', 'Puskeswan Topoyo'].includes(watchPuskeswan);
   const isOtherStaff = showStaffDropdown && watchStaffName === 'Lainnya';
+  const isOtherCowType = watchCowType === 'Lainnya';
 
 
   const formFields = [
@@ -253,7 +261,7 @@ export function InseminationForm() {
     // breederAddress is conditional
     { name: 'phoneNumber', label: 'Nomor HP' },
     { name: 'breederId', label: 'ID Peternak (KTP)' },
-    { name: 'cowType', label: 'Jenis Sapi Indukan' },
+    // cowType is conditional
     { name: 'cowId', label: 'ID Indukan (Eartag)' },
     { name: 'strawType', label: 'Jenis Straw Pejantan' },
     { name: 'strawId', label: 'ID Pejantan Straw' },
@@ -414,7 +422,60 @@ export function InseminationForm() {
               />
           </Card>
 
-          {formFields.map((formField) => (
+          {formFields.slice(0, 3).map((formField) => (
+            <Card key={formField.name} className="p-4 flex flex-col justify-center">
+              <FormField
+                control={form.control}
+                name={formField.name}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{formField.label}</FormLabel>
+                    <FormControl>
+                      <Input placeholder={`Masukkan ${formField.label.toLowerCase()}`} {...field} value={field.value || ''} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </Card>
+          ))}
+
+          {/* Cow Type Field */}
+          <Card className="p-4 flex flex-col justify-center">
+            <FormField
+              control={form.control}
+              name="cowType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Jenis Sapi Indukan</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Jenis Sapi" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {cowTypeOptions.map((type) => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))}
+                      <SelectItem value="Lainnya">Lainnya</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {isOtherCowType && (
+                    <FormControl className="mt-2">
+                      <Input
+                        placeholder="Masukkan jenis sapi"
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Card>
+          
+          {formFields.slice(3).map((formField) => (
             <Card key={formField.name} className="p-4 flex flex-col justify-center">
               <FormField
                 control={form.control}
