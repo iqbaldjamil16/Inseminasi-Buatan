@@ -68,29 +68,36 @@ export function InseminationForm() {
     'Desa Paraili', 'Desa Salule\'bo', 'Desa Salupangkang', 'Desa Salupangkang IV', 
     'Desa Sinabatta', 'Desa Tabolang', 'Desa Tangkau', 'Desa Tappilina', 
     'Desa Topoyo', 'Desa Tumbu', 'Desa Waeputeh'
-  ];
+  ].sort();
 
   const tobadakVillages = [
     'Desa Bambadaru', 'Desa Batu Parigi', 'Desa Mahahe', 'Desa Polongaan', 
     'Desa Saluadak', 'Desa Sejati', 'Desa Sulobaja', 'Desa Tobadak'
-  ];
+  ].sort();
   
   const pangaleVillages = [
       'Desa Kombiling', 'Desa Kuo', 'Desa Lamba-lamba', 'Desa Lemo-Lemo', 
       'Desa Pangale', 'Desa Polo Camba', 'Desa Polo Lereng', 'Desa Polo Pangale', 
       'Desa Sartanamaju'
-  ];
+  ].sort();
+
+  const budongBudongVillages = [
+    'Desa Babana', 'Desa Barakkang', 'Desa Kire', 'Desa Lumu', 'Desa Pasapa', 
+    'Desa Salumanurung', 'Desa Tinali', 'Desa Bojo', 'Desa Lembah Hada', 
+    'Desa Salogatta', 'Desa Potantanakayyang'
+  ].sort();
 
   React.useEffect(() => {
     const puskeswanVillageMap: Record<string, string[]> = {
       'Puskeswan Topoyo': topoyoVillages,
       'Puskeswan Tobadak': tobadakVillages,
       'Puskeswan Pangale': pangaleVillages,
+      'Puskeswan Budong-Budong': budongBudongVillages,
     };
     const selectedVillages = puskeswanVillageMap[watchPuskeswan];
 
     if (!selectedVillages && watchBreederAddress) {
-      if ([...topoyoVillages, ...tobadakVillages, ...pangaleVillages].includes(watchBreederAddress)) {
+      if ([...topoyoVillages, ...tobadakVillages, ...pangaleVillages, ...budongBudongVillages].includes(watchBreederAddress)) {
          form.setValue('breederAddress', '');
       }
     } else if (selectedVillages && watchBreederAddress && !selectedVillages.includes(watchBreederAddress) && watchBreederAddress !== 'Lainnya') {
@@ -151,13 +158,15 @@ export function InseminationForm() {
             return tobadakVillages;
         case 'Puskeswan Pangale':
             return pangaleVillages;
+        case 'Puskeswan Budong-Budong':
+            return budongBudongVillages;
         default:
             return [];
     }
   };
 
   const villageOptions = getVillageOptions();
-  const showVillageDropdown = ['Puskeswan Topoyo', 'Puskeswan Tobadak', 'Puskeswan Pangale'].includes(watchPuskeswan);
+  const showVillageDropdown = ['Puskeswan Topoyo', 'Puskeswan Tobadak', 'Puskeswan Pangale', 'Puskeswan Budong-Budong'].includes(watchPuskeswan);
   const isOtherAddress = showVillageDropdown && watchBreederAddress === 'Lainnya';
 
   const formFields = [
@@ -311,5 +320,3 @@ export function InseminationForm() {
     </Form>
   );
 }
-
-    
