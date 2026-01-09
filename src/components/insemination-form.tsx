@@ -94,7 +94,7 @@ export function InseminationForm() {
     'Desa Tasoskko', 'Desa Kambunong', 'Mora IV', 'UPT Lara III'
   ].sort();
   
-  const budongBudongStaff = ['Anshari Saleh Hadi', 'Rahman'].sort();
+  const budongBudongStaff = ['Anshari Saleh', 'Hadi', 'Rahman'].sort();
 
   React.useEffect(() => {
     const puskeswanVillageMap: Record<string, string[]> = {
