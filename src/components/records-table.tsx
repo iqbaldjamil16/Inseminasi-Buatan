@@ -21,7 +21,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Download, Search, Trash2, FilePenLine, ChevronDown, Loader2 } from 'lucide-react';
+import { Download, Search, Trash2, FilePenLine, ChevronDown, Loader2, Undo2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import {
   Select,
@@ -62,6 +62,7 @@ import { collection, doc } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';
+import Link from 'next/link';
 
 
 export function RecordsTable() {
@@ -261,7 +262,14 @@ export function RecordsTable() {
     <>
     <Card>
       <CardHeader>
-        <CardTitle>Catatan Inseminasi Buatan</CardTitle>
+        <div className="flex items-center justify-between">
+            <CardTitle>Catatan Inseminasi Buatan</CardTitle>
+            <Link href="/" passHref>
+                <Button asChild variant="default" size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+                    <a><Undo2 className="h-5 w-5" /></a>
+                </Button>
+            </Link>
+        </div>
         <CardDescription>
           Lihat, cari, dan ekspor semua data inseminasi yang telah tercatat.
         </CardDescription>
@@ -522,3 +530,4 @@ export function RecordsTable() {
 }
 
     
+
