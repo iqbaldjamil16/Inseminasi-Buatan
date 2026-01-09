@@ -192,12 +192,11 @@ export function RecordsTable() {
   
   const exportToCSV = () => {
     const sortedForExport = [...filteredData].sort((a, b) => {
-      if (a.staffName.toLowerCase() < b.staffName.toLowerCase()) return -1;
-      if (a.staffName.toLowerCase() > b.staffName.toLowerCase()) return 1;
-
-      const dateA = new Date(a.inseminationDate).getTime();
-      const dateB = new Date(b.inseminationDate).getTime();
-      return dateA - dateB;
+      const nameA = a.staffName.toLowerCase();
+      const nameB = b.staffName.toLowerCase();
+      if (nameA < nameB) return -1;
+      if (nameA > nameB) return 1;
+      return 0; // If names are equal, no secondary sort for now.
     });
     
     const headers = [
