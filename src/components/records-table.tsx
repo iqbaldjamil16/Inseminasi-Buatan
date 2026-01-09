@@ -193,9 +193,8 @@ export function RecordsTable() {
   const exportToCSV = () => {
     const recordsToExport = [...filteredData];
 
-    // Group records by staffName
     const groupedByStaff = recordsToExport.reduce((acc, record) => {
-        const staffName = record.staffName;
+        const staffName = record.staffName || 'Lainnya';
         if (!acc[staffName]) {
             acc[staffName] = [];
         }
@@ -203,7 +202,6 @@ export function RecordsTable() {
         return acc;
     }, {} as Record<string, InseminationRecord[]>);
 
-    // Sort staff names alphabetically
     const sortedStaffNames = Object.keys(groupedByStaff).sort();
 
     const headers = [
@@ -213,25 +211,21 @@ export function RecordsTable() {
     let csvContent = '';
 
     sortedStaffNames.forEach(staffName => {
-        // Add a title row for the staff member
         csvContent += `Laporan untuk: ${staffName}\n`;
-        // Add the main headers
         csvContent += headers.join(',') + '\n';
 
-        // Sort records for the current staff member by date
         const staffRecords = groupedByStaff[staffName].sort((a, b) => {
             const dateA = a.inseminationDate instanceof Date ? a.inseminationDate.getTime() : 0;
             const dateB = b.inseminationDate instanceof Date ? b.inseminationDate.getTime() : 0;
             return dateA - dateB;
         });
 
-        // Add the record rows
         const rows = staffRecords.map(record => [
             record.inseminationDate ? format(new Date(record.inseminationDate), 'yyyy-MM-dd') : '',
             record.staffName,
             record.puskeswan,
             record.breederName,
-            `"${record.breederAddress}"`,
+            `"${(record.breederAddress || '').replace(/"/g, '""')}"`,
             record.phoneNumber,
             `'${record.breederId}`,
             record.cowType,
@@ -243,8 +237,6 @@ export function RecordsTable() {
         ].join(','));
         
         csvContent += rows.join('\n');
-        
-        // Add two blank rows for spacing
         csvContent += '\n\n';
     });
 
