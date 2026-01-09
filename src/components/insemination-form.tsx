@@ -98,6 +98,7 @@ export function InseminationForm() {
   const karossaStaff = ['Asari Rasyid', 'drh. Stephani', 'Basuki', 'Hasaruddin'].sort();
   const pangaleStaff = ['drh. Ketut Elok', 'Mansyur', 'Jawaril', 'Sugeng'].sort();
   const tobadakStaff = ['Endang', 'drh. Ishak'].sort();
+  const topoyoStaff = ['drh. Iqbal Djamil', 'Alfons B', 'Haslim'].sort();
 
 
   React.useEffect(() => {
@@ -133,13 +134,14 @@ export function InseminationForm() {
         'Puskeswan Karossa': karossaStaff,
         'Puskeswan Pangale': pangaleStaff,
         'Puskeswan Tobadak': tobadakStaff,
+        'Puskeswan Topoyo': topoyoStaff,
     };
     const allowedStaff = staffMap[watchPuskeswan];
     
     // If the puskeswan doesn't have a specific staff list
     if (!allowedStaff) {
       // and the current staff name is one from a specific list
-      const allSpecificStaff = [...budongBudongStaff, ...karossaStaff, ...pangaleStaff, ...tobadakStaff, 'Lainnya'];
+      const allSpecificStaff = [...budongBudongStaff, ...karossaStaff, ...pangaleStaff, ...tobadakStaff, ...topoyoStaff, 'Lainnya'];
       if (allSpecificStaff.includes(watchStaffName)) {
         form.setValue('staffName', '');
       }
@@ -222,6 +224,8 @@ export function InseminationForm() {
         return pangaleStaff;
       case 'Puskeswan Tobadak':
         return tobadakStaff;
+      case 'Puskeswan Topoyo':
+        return topoyoStaff;
       default:
         return [];
     }
@@ -239,7 +243,7 @@ export function InseminationForm() {
     ].includes(watchPuskeswan);
   const isOtherAddress = showVillageDropdown && watchBreederAddress === 'Lainnya';
   
-  const showStaffDropdown = ['Puskeswan Budong-Budong', 'Puskeswan Karossa', 'Puskeswan Pangale', 'Puskeswan Tobadak'].includes(watchPuskeswan);
+  const showStaffDropdown = ['Puskeswan Budong-Budong', 'Puskeswan Karossa', 'Puskeswan Pangale', 'Puskeswan Tobadak', 'Puskeswan Topoyo'].includes(watchPuskeswan);
   const isOtherStaff = showStaffDropdown && watchStaffName === 'Lainnya';
 
 
