@@ -87,17 +87,32 @@ export function InseminationForm() {
     'Desa Salogatta', 'Desa Potantanakayyang'
   ].sort();
 
+  const karossaVillages = [
+    'Desa Benggaulu', 'Desa Kadaila', 'Desa Karossa', 'Desa Kayucalla', 'Desa Lara',
+    'Desa Lembah Hopo', 'Desa Salubiro', 'Desa Sanjango', 'Desa Sukamaju', 
+    'Desa Tasoskko', 'Desa Kambunong', 'Mora IV', 'UPT Lara III'
+  ].sort();
+
   React.useEffect(() => {
     const puskeswanVillageMap: Record<string, string[]> = {
       'Puskeswan Topoyo': topoyoVillages,
       'Puskeswan Tobadak': tobadakVillages,
       'Puskeswan Pangale': pangaleVillages,
       'Puskeswan Budong-Budong': budongBudongVillages,
+      'Puskeswan Karossa': karossaVillages,
     };
     const selectedVillages = puskeswanVillageMap[watchPuskeswan];
 
+    const allVillages = [
+      ...topoyoVillages, 
+      ...tobadakVillages, 
+      ...pangaleVillages, 
+      ...budongBudongVillages,
+      ...karossaVillages
+    ];
+
     if (!selectedVillages && watchBreederAddress) {
-      if ([...topoyoVillages, ...tobadakVillages, ...pangaleVillages, ...budongBudongVillages].includes(watchBreederAddress)) {
+      if (allVillages.includes(watchBreederAddress)) {
          form.setValue('breederAddress', '');
       }
     } else if (selectedVillages && watchBreederAddress && !selectedVillages.includes(watchBreederAddress) && watchBreederAddress !== 'Lainnya') {
@@ -160,13 +175,21 @@ export function InseminationForm() {
             return pangaleVillages;
         case 'Puskeswan Budong-Budong':
             return budongBudongVillages;
+        case 'Puskeswan Karossa':
+            return karossaVillages;
         default:
             return [];
     }
   };
 
   const villageOptions = getVillageOptions();
-  const showVillageDropdown = ['Puskeswan Topoyo', 'Puskeswan Tobadak', 'Puskeswan Pangale', 'Puskeswan Budong-Budong'].includes(watchPuskeswan);
+  const showVillageDropdown = [
+      'Puskeswan Topoyo', 
+      'Puskeswan Tobadak', 
+      'Puskeswan Pangale', 
+      'Puskeswan Budong-Budong',
+      'Puskeswan Karossa'
+    ].includes(watchPuskeswan);
   const isOtherAddress = showVillageDropdown && watchBreederAddress === 'Lainnya';
 
   const formFields = [
