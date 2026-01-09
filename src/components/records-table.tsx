@@ -191,40 +191,68 @@ export function RecordsTable() {
   }, [searchTerm, displayData, selectedMonth, selectedYear]);
   
   const exportToCSV = () => {
-    const sortedForExport = [...filteredData].sort((a, b) => {
-      const nameA = a.staffName.toLowerCase();
-      const nameB = b.staffName.toLowerCase();
-      if (nameA < nameB) return -1;
-      if (nameA > nameB) return 1;
-      return 0; // If names are equal, no secondary sort for now.
-    });
-    
-    const headers = [
-      'Tanggal IB', 'Nama Petugas', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
-      'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
-    ];
-    const rows = sortedForExport.map(record => [
-        record.inseminationDate ? format(new Date(record.inseminationDate), 'yyyy-MM-dd') : '',
-        record.staffName,
-        record.puskeswan,
-        record.breederName,
-        `"${record.breederAddress}"`,
-        record.phoneNumber,
-        `'${record.breederId}`,
-        record.cowType,
-        record.cowId,
-        record.strawType,
-        record.strawId,
-        record.strawBatchId,
-        record.strawProducer,
-    ].join(','));
+    const recordsToExport = [...filteredData];
 
-    const csvContent = [headers.join(','), ...rows].join('\n');
+    // Group records by staffName
+    const groupedByStaff = recordsToExport.reduce((acc, record) => {
+        const staffName = record.staffName;
+        if (!acc[staffName]) {
+            acc[staffName] = [];
+        }
+        acc[staffName].push(record);
+        return acc;
+    }, {} as Record<string, InseminationRecord[]>);
+
+    // Sort staff names alphabetically
+    const sortedStaffNames = Object.keys(groupedByStaff).sort();
+
+    const headers = [
+        'Tanggal IB', 'Nama Petugas', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
+        'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
+    ];
+    let csvContent = '';
+
+    sortedStaffNames.forEach(staffName => {
+        // Add a title row for the staff member
+        csvContent += `Laporan untuk: ${staffName}\n`;
+        // Add the main headers
+        csvContent += headers.join(',') + '\n';
+
+        // Sort records for the current staff member by date
+        const staffRecords = groupedByStaff[staffName].sort((a, b) => {
+            const dateA = a.inseminationDate instanceof Date ? a.inseminationDate.getTime() : 0;
+            const dateB = b.inseminationDate instanceof Date ? b.inseminationDate.getTime() : 0;
+            return dateA - dateB;
+        });
+
+        // Add the record rows
+        const rows = staffRecords.map(record => [
+            record.inseminationDate ? format(new Date(record.inseminationDate), 'yyyy-MM-dd') : '',
+            record.staffName,
+            record.puskeswan,
+            record.breederName,
+            `"${record.breederAddress}"`,
+            record.phoneNumber,
+            `'${record.breederId}`,
+            record.cowType,
+            record.cowId,
+            record.strawType,
+            record.strawId,
+            record.strawBatchId,
+            record.strawProducer,
+        ].join(','));
+        
+        csvContent += rows.join('\n');
+        
+        // Add two blank rows for spacing
+        csvContent += '\n\n';
+    });
+
     const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `IB-Pro_Records_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `IB-Pro_Records_Grouped_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
