@@ -108,7 +108,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               </SheetTrigger>
               <SheetContent side="left" className="flex flex-col bg-sidebar text-sidebar-foreground p-0 w-full max-w-[280px] sm:max-w-sm">
                 <SidebarHeader className="p-4">
-                  <SheetTitle className="sr-only">IB-Pro</SheetTitle>
                   <Link href="/" className="flex items-center gap-3">
                     <Beef className="h-8 w-8 text-primary" />
                     <h1 className="text-xl font-headline font-bold text-sidebar-foreground">
@@ -142,8 +141,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               <nav className="flex items-center gap-2 sm:gap-4">
                   <Link href={headerNavItem.href}>
                       <Button variant={pathname === headerNavItem.href ? "secondary" : "ghost"}>
-                          <headerNavItem.icon className="h-4 w-4 md:mr-2" />
-                          <span className="hidden md:inline">{headerNavItem.label}</span>
+                          <headerNavItem.icon className="h-4 w-4 mr-2" />
+                          <span>{headerNavItem.label}</span>
                       </Button>
                   </Link>
               </nav>
