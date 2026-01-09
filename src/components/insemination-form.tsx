@@ -64,10 +64,15 @@ export function InseminationForm() {
   const watchBreederAddress = form.watch('breederAddress');
 
   React.useEffect(() => {
-    if (watchPuskeswan !== 'Puskeswan Topoyo') {
-      if (watchBreederAddress && topoyoVillages.includes(watchBreederAddress)) {
+    if (watchPuskeswan !== 'Puskeswan Topoyo' && watchPuskeswan !== 'Puskeswan Tobadak') {
+      if (watchBreederAddress && (topoyoVillages.includes(watchBreederAddress) || tobadakVillages.includes(watchBreederAddress))) {
         form.setValue('breederAddress', '');
       }
+    } else if (watchPuskeswan === 'Puskeswan Topoyo' && tobadakVillages.includes(watchBreederAddress)){
+        form.setValue('breederAddress', '');
+    }
+     else if (watchPuskeswan === 'Puskeswan Tobadak' && topoyoVillages.includes(watchBreederAddress)){
+        form.setValue('breederAddress', '');
     }
   }, [watchPuskeswan, watchBreederAddress, form]);
 
@@ -122,8 +127,15 @@ export function InseminationForm() {
     'Desa Topoyo', 'Desa Tumbu', 'Desa Waeputeh'
   ];
 
-  const isOtherAddress = watchPuskeswan === 'Puskeswan Topoyo' && watchBreederAddress === 'Lainnya';
-  const showVillageSelect = watchPuskeswan === 'Puskeswan Topoyo';
+  const tobadakVillages = [
+    'Desa Bambadaru', 'Desa Batu Parigi', 'Desa Mahahe', 'Desa Polongaan', 
+    'Desa Saluadak', 'Desa Sejati', 'Desa Sulobaja', 'Desa Tobadak'
+  ];
+  
+  const villageOptions = watchPuskeswan === 'Puskeswan Topoyo' ? topoyoVillages : tobadakVillages;
+
+  const isOtherAddress = (watchPuskeswan === 'Puskeswan Topoyo' || watchPuskeswan === 'Puskeswan Tobadak') && watchBreederAddress === 'Lainnya';
+  const showVillageDropdown = watchPuskeswan === 'Puskeswan Topoyo' || watchPuskeswan === 'Puskeswan Tobadak';
 
   const formFields = [
     { name: 'staffName', label: 'Nama Petugas' },
@@ -213,7 +225,7 @@ export function InseminationForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Alamat Peternak</FormLabel>
-                    {showVillageSelect ? (
+                    {showVillageDropdown ? (
                       <>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
@@ -222,7 +234,7 @@ export function InseminationForm() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {topoyoVillages.map((village) => (
+                            {villageOptions.map((village) => (
                               <SelectItem key={village} value={village}>{village}</SelectItem>
                             ))}
                             <SelectItem value="Lainnya">Lainnya</SelectItem>
