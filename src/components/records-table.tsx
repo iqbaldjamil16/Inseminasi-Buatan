@@ -21,7 +21,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Download, Search, Trash2, FilePenLine, ChevronDown, Loader2, ArrowLeft } from 'lucide-react';
+import { Download, Search, Trash2, FilePenLine, ChevronDown, Loader2, CornerUpLeft } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import {
   Select,
@@ -262,7 +262,7 @@ export function RecordsTable() {
     <>
       <Link href="/" passHref>
         <Button asChild variant="default" size="icon" className="fixed bottom-6 left-6 h-14 w-14 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg z-50">
-           <ArrowLeft className="h-7 w-7" />
+           <CornerUpLeft className="h-7 w-7" />
         </Button>
       </Link>
       <Card>
