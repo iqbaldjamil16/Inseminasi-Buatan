@@ -276,6 +276,12 @@ export function RecordsTable() {
             Lihat, cari, dan ekspor semua data inseminasi yang telah tercatat.
           </CardDescription>
         </CardHeader>
+        <CardFooter className="flex justify-end pt-0">
+          <Button onClick={exportToCSV} disabled={isLoading || filteredData.length === 0}>
+            <Download className="mr-2 h-4 w-4" />
+            Unduh Laporan
+          </Button>
+        </CardFooter>
       </Card>
       
       <Card>
@@ -417,12 +423,6 @@ export function RecordsTable() {
           </ScrollArea>
           )}
         </CardContent>
-        <CardFooter className="flex justify-end">
-          <Button onClick={exportToCSV} disabled={isLoading || filteredData.length === 0}>
-            <Download className="mr-2 h-4 w-4" />
-            Unduh Laporan
-          </Button>
-        </CardFooter>
       </Card>
 
       {/* Edit Dialog */}
