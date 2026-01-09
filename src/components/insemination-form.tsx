@@ -268,7 +268,7 @@ export function InseminationForm() {
           <CardHeader>
             <CardTitle>Input Data Inseminasi Buatan</CardTitle>
             <CardDescription>
-              Masukkan detail pelayanan inseminasi buatan yang telah dilakukan.
+              Input detail pelayanan inseminasi buatan yang telah dilakukan.
             </CardDescription>
           </CardHeader>
         </Card>
