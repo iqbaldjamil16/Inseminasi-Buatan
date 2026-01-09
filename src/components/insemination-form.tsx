@@ -64,6 +64,7 @@ export function InseminationForm() {
   const watchBreederAddress = form.watch('breederAddress');
   const watchStaffName = form.watch('staffName');
   const watchCowType = form.watch('cowType');
+  const watchStrawType = form.watch('strawType');
 
 
   const topoyoVillages = [
@@ -199,7 +200,7 @@ export function InseminationForm() {
     'Puskeswan Topoyo',
   ];
 
-  const cowTypeOptions = [
+  const commonSapiOptions = [
     'Sapi Angus', 'Sapi Bali', 'Sapi Brahman', 'Sapi Donggala', 
     'Sapi Limosin', 'Sapi Madura', 'Sapi Simental'
   ].sort();
@@ -253,6 +254,7 @@ export function InseminationForm() {
   const showStaffDropdown = ['Puskeswan Budong-Budong', 'Puskeswan Karossa', 'Puskeswan Pangale', 'Puskeswan Tobadak', 'Puskeswan Topoyo'].includes(watchPuskeswan);
   const isOtherStaff = showStaffDropdown && watchStaffName === 'Lainnya';
   const isOtherCowType = watchCowType === 'Lainnya';
+  const isOtherStrawType = watchStrawType === 'Lainnya';
 
 
   const formFields = [
@@ -263,7 +265,7 @@ export function InseminationForm() {
     { name: 'breederId', label: 'ID Peternak (KTP)' },
     // cowType is conditional
     { name: 'cowId', label: 'ID Indukan (Eartag)' },
-    { name: 'strawType', label: 'Jenis Straw Pejantan' },
+    // strawType is conditional
     { name: 'strawId', label: 'ID Pejantan Straw' },
     { name: 'strawBatchId', label: 'ID Batch Straw' },
     { name: 'strawProducer', label: 'Produsen Straw' },
@@ -455,7 +457,7 @@ export function InseminationForm() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {cowTypeOptions.map((type) => (
+                      {commonSapiOptions.map((type) => (
                         <SelectItem key={type} value={type}>{type}</SelectItem>
                       ))}
                       <SelectItem value="Lainnya">Lainnya</SelectItem>
@@ -475,7 +477,60 @@ export function InseminationForm() {
             />
           </Card>
           
-          {formFields.slice(3).map((formField) => (
+          {/* Renders cowId */}
+          <Card className="p-4 flex flex-col justify-center">
+            <FormField
+              control={form.control}
+              name="cowId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ID Indukan (Eartag)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Masukkan id indukan (eartag)" {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Card>
+
+          {/* Straw Type Field */}
+          <Card className="p-4 flex flex-col justify-center">
+            <FormField
+              control={form.control}
+              name="strawType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Jenis Straw Pejantan</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih Jenis Straw" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {commonSapiOptions.map((type) => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))}
+                      <SelectItem value="Lainnya">Lainnya</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {isOtherStrawType && (
+                    <FormControl className="mt-2">
+                      <Input
+                        placeholder="Masukkan jenis straw"
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Card>
+
+          {/* Renders remaining fields after strawType */}
+          {formFields.slice(5).map((formField) => (
             <Card key={formField.name} className="p-4 flex flex-col justify-center">
               <FormField
                 control={form.control}
