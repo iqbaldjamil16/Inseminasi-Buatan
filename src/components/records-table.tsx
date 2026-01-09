@@ -275,7 +275,12 @@ export function RecordsTable() {
           <CardDescription>
             Lihat, cari, dan ekspor semua data inseminasi yang telah tercatat.
           </CardDescription>
-          <div className="flex flex-col sm:flex-row items-center gap-2 pt-4">
+        </CardHeader>
+      </Card>
+      
+      <Card>
+        <CardContent className="pt-6">
+           <div className="flex flex-col sm:flex-row items-center gap-2 pb-4">
               <div className="grid grid-cols-2 gap-2 w-full sm:flex-1">
                   <Select onValueChange={setSelectedMonth} value={selectedMonth}>
                       <SelectTrigger>
@@ -310,13 +315,8 @@ export function RecordsTable() {
                   />
               </div>
           </div>
-        </CardHeader>
-      </Card>
-      
-      <Card>
-        <CardContent className="pt-6">
           {isLoading ? <TableSkeleton /> : (
-          <ScrollArea className="h-[calc(100vh-420px)] md:h-[calc(100vh-400px)]">
+          <ScrollArea className="h-[calc(100vh-480px)] md:h-[calc(100vh-460px)]">
           {/* Mobile View */}
           <div className="md:hidden pr-4">
             <Accordion type="single" collapsible className="w-full space-y-4">
