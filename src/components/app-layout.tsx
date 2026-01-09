@@ -98,19 +98,19 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Sidebar>
 
         <div className="flex flex-col">
-          <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background px-4 lg:h-[60px] lg:px-6">
+          <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background px-4 sm:px-6 lg:h-[60px]">
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon" className="shrink-0 bg-accent hover:bg-accent/90">
-                  <PanelLeft className="h-5 w-5" />
+                  <Menu className="h-5 w-5" />
                   <span className="sr-only">Toggle navigation menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="flex flex-col bg-sidebar text-sidebar-foreground p-0 w-[280px]">
-                 <SidebarHeader className="p-4">
+              <SheetContent side="left" className="flex flex-col bg-sidebar text-sidebar-foreground p-0 w-full max-w-[280px] sm:max-w-sm">
+                <SidebarHeader className="p-4">
+                  <SheetTitle className="sr-only">IB-Pro</SheetTitle>
                   <Link href="/" className="flex items-center gap-3">
                     <Beef className="h-8 w-8 text-primary" />
-                    <SheetTitle className="sr-only">IB-Pro</SheetTitle>
                     <h1 className="text-xl font-headline font-bold text-sidebar-foreground">
                       IB-Pro
                     </h1>
@@ -139,18 +139,18 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
             <div className="w-full flex items-center justify-between">
               <h1 className="text-lg font-semibold">{getPageTitle()}</h1>
-              <nav className="flex items-center gap-4">
+              <nav className="flex items-center gap-2 sm:gap-4">
                   <Link href={headerNavItem.href}>
                       <Button variant={pathname === headerNavItem.href ? "secondary" : "ghost"}>
-                          <headerNavItem.icon className="h-4 w-4 mr-2" />
-                          {headerNavItem.label}
+                          <headerNavItem.icon className="h-4 w-4 md:mr-2" />
+                          <span className="hidden md:inline">{headerNavItem.label}</span>
                       </Button>
                   </Link>
               </nav>
             </div>
 
           </header>
-          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+          <main className="flex flex-1 flex-col gap-4 p-4 sm:p-6 lg:gap-6">
             {children}
           </main>
         </div>

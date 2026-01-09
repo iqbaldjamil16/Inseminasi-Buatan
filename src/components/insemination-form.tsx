@@ -432,7 +432,7 @@ export function InseminationForm() {
             </Card>
           ))}
         </div>
-        <CardFooter className="flex justify-end px-0">
+        <CardFooter className="flex justify-end px-0 pt-6">
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Simpan Data

@@ -266,7 +266,7 @@ export function RecordsTable() {
           Lihat, cari, dan ekspor semua data inseminasi yang telah tercatat.
         </CardDescription>
         <div className="flex flex-col sm:flex-row items-center gap-2 pt-4">
-            <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex-1">
+            <div className="grid grid-cols-2 gap-2 w-full sm:flex-1">
                  <Select onValueChange={setSelectedMonth} value={selectedMonth}>
                     <SelectTrigger>
                         <SelectValue placeholder="Pilih Bulan" />
@@ -290,7 +290,7 @@ export function RecordsTable() {
                     </SelectContent>
                 </Select>
             </div>
-            <div className="relative w-full sm:w-auto sm:flex-1">
+            <div className="relative w-full sm:flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
                     placeholder="Cari nama, eartag, KTP, atau tanggal..."
@@ -303,7 +303,7 @@ export function RecordsTable() {
       </CardHeader>
       <CardContent>
         {isLoading ? <TableSkeleton /> : (
-        <ScrollArea className="h-[60vh]">
+        <ScrollArea className="h-[calc(100vh-320px)] md:h-[calc(100vh-300px)]">
         {/* Mobile View */}
         <div className="md:hidden pr-4">
           <Accordion type="single" collapsible className="w-full space-y-4">
