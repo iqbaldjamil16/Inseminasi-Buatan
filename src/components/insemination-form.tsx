@@ -62,6 +62,7 @@ export function InseminationForm() {
 
   const watchPuskeswan = form.watch('puskeswan');
   const watchBreederAddress = form.watch('breederAddress');
+  const watchStaffName = form.watch('staffName');
 
   const topoyoVillages = [
     'Desa Bambamanurug', 'Desa Budong-Budong', 'Desa Kabubu', 'Desa Pangalloang', 
@@ -82,9 +83,9 @@ export function InseminationForm() {
   ].sort();
 
   const budongBudongVillages = [
-    'Desa Babana', 'Desa Barakkang', 'Desa Kire', 'Desa Lumu', 'Desa Pasapa', 
-    'Desa Salumanurung', 'Desa Tinali', 'Desa Bojo', 'Desa Lembah Hada', 
-    'Desa Salogatta', 'Desa Potantanakayyang'
+    'Desa Babana', 'Desa Barakkang', 'Desa Bojo', 'Desa Kire', 'Desa Lembah Hada', 
+    'Desa Lumu', 'Desa Pasapa', 'Desa Potantanakayyang', 'Desa Salogatta', 
+    'Desa Salumanurung', 'Desa Tinali'
   ].sort();
 
   const karossaVillages = [
@@ -92,6 +93,8 @@ export function InseminationForm() {
     'Desa Lembah Hopo', 'Desa Salubiro', 'Desa Sanjango', 'Desa Sukamaju', 
     'Desa Tasoskko', 'Desa Kambunong', 'Mora IV', 'UPT Lara III'
   ].sort();
+  
+  const budongBudongStaff = ['Anshari Saleh Hadi', 'Rahman'].sort();
 
   React.useEffect(() => {
     const puskeswanVillageMap: Record<string, string[]> = {
@@ -120,6 +123,11 @@ export function InseminationForm() {
     }
   }, [watchPuskeswan, watchBreederAddress, form]);
 
+  React.useEffect(() => {
+    if (watchPuskeswan !== 'Puskeswan Budong-Budong' && (budongBudongStaff.includes(watchStaffName) || watchStaffName === 'Lainnya')) {
+      form.setValue('staffName', '');
+    }
+  }, [watchPuskeswan, watchStaffName, form]);
 
   async function onSubmit(data: InseminationRecord) {
     if (!firestore) {
@@ -191,11 +199,15 @@ export function InseminationForm() {
       'Puskeswan Karossa'
     ].includes(watchPuskeswan);
   const isOtherAddress = showVillageDropdown && watchBreederAddress === 'Lainnya';
+  
+  const showStaffDropdown = watchPuskeswan === 'Puskeswan Budong-Budong';
+  const isOtherStaff = showStaffDropdown && watchStaffName === 'Lainnya';
+
 
   const formFields = [
-    { name: 'staffName', label: 'Nama Petugas' },
+    // staffName is now conditional
     { name: 'breederName', label: 'Nama Peternak' },
-    // Alamat Peternak is handled conditionally
+    // breederAddress is conditional
     { name: 'phoneNumber', label: 'Nomor HP' },
     { name: 'breederId', label: 'ID Peternak (KTP)' },
     { name: 'cowType', label: 'Jenis Sapi Indukan' },
@@ -252,6 +264,7 @@ export function InseminationForm() {
                   <Select onValueChange={(value) => {
                       field.onChange(value);
                       form.setValue('breederAddress', '');
+                      form.setValue('staffName', '');
                     }} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -266,6 +279,49 @@ export function InseminationForm() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Card>
+
+          {/* Conditional Staff Name Field */}
+          <Card className="p-4 flex flex-col justify-center">
+            <FormField
+              control={form.control}
+              name="staffName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nama Petugas</FormLabel>
+                  {showStaffDropdown ? (
+                     <>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                         <FormControl>
+                           <SelectTrigger>
+                             <SelectValue placeholder="Pilih Petugas" />
+                           </SelectTrigger>
+                         </FormControl>
+                         <SelectContent>
+                           {budongBudongStaff.map((staff) => (
+                             <SelectItem key={staff} value={staff}>{staff}</SelectItem>
+                           ))}
+                           <SelectItem value="Lainnya">Lainnya</SelectItem>
+                         </SelectContent>
+                       </Select>
+                       {isOtherStaff && (
+                         <FormControl className="mt-2">
+                           <Input 
+                             placeholder="Masukkan nama petugas" 
+                             onChange={(e) => field.onChange(e.target.value)} 
+                           />
+                         </FormControl>
+                       )}
+                     </>
+                  ) : (
+                    <FormControl>
+                      <Input placeholder="Masukkan nama petugas" {...field} />
+                    </FormControl>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
