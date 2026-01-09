@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -67,6 +68,16 @@ function NavContent() {
 
 export default function AppLayout({ children }: { children: ReactNode }) {
     const pathname = usePathname();
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    
+    const handleButtonPress = () => {
+      // Logic for press
+    };
+
+    const handleButtonRelease = () => {
+      // Logic for release
+    };
+
     const getPageTitle = () => {
         switch (pathname) {
             case '/':
@@ -99,11 +110,19 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
         <div className="flex flex-col">
           <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background px-4 sm:px-6 lg:h-[60px]">
-            <Sheet>
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="shrink-0 bg-accent hover:bg-accent/90">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle navigation menu</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="bg-accent text-accent-foreground hover:bg-accent/90"
+                  onMouseDown={handleButtonPress}
+                  onMouseUp={handleButtonRelease}
+                  onTouchStart={handleButtonPress}
+                  onTouchEnd={handleButtonRelease}
+                >
+                  <PanelLeft className="h-6 w-6" />
+                  <span className="sr-only">Buka Menu</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="flex flex-col bg-sidebar text-sidebar-foreground p-0 w-full max-w-[280px] sm:max-w-sm">
@@ -125,6 +144,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                               as="a"
                               isActive={pathname === item.href}
                               className="justify-start"
+                              onClick={() => setIsSheetOpen(false)}
                             >
                               <item.icon className="h-5 w-5" />
                               <span>{item.label}</span>
