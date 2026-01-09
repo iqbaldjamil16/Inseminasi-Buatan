@@ -140,7 +140,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               <h1 className="text-lg font-semibold">{getPageTitle()}</h1>
               <nav className="flex items-center gap-2 sm:gap-4">
                   <Link href={headerNavItem.href}>
-                      <Button variant={pathname === headerNavItem.href ? "secondary" : "ghost"}>
+                      <Button variant="outline" className="bg-white text-primary hover:bg-white/90 hover:text-primary font-semibold">
                           <headerNavItem.icon className="h-4 w-4 mr-2" />
                           <span>{headerNavItem.label}</span>
                       </Button>
