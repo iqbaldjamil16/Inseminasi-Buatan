@@ -191,11 +191,20 @@ export function RecordsTable() {
   }, [searchTerm, displayData, selectedMonth, selectedYear]);
   
   const exportToCSV = () => {
+    const sortedForExport = [...filteredData].sort((a, b) => {
+      if (a.staffName.toLowerCase() < b.staffName.toLowerCase()) return -1;
+      if (a.staffName.toLowerCase() > b.staffName.toLowerCase()) return 1;
+
+      const dateA = new Date(a.inseminationDate).getTime();
+      const dateB = new Date(b.inseminationDate).getTime();
+      return dateA - dateB;
+    });
+    
     const headers = [
       'Tanggal IB', 'Nama Petugas', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
       'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
     ];
-    const rows = filteredData.map(record => [
+    const rows = sortedForExport.map(record => [
         record.inseminationDate ? format(new Date(record.inseminationDate), 'yyyy-MM-dd') : '',
         record.staffName,
         record.puskeswan,
