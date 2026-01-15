@@ -158,7 +158,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             </Sheet>
 
             <div className="w-full flex items-center justify-between">
-              <h1 className="text-lg font-semibold">{getPageTitle()}</h1>
+              <h1 className="text-lg font-semibold text-primary">{getPageTitle()}</h1>
               <nav className="flex items-center gap-2 sm:gap-4">
                   <Link href={headerNavItem.href}>
                       <Button variant="outline" className={cn(
