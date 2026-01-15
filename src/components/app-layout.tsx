@@ -125,12 +125,12 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                   <span className="sr-only">Buka Menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="flex flex-col bg-sidebar text-sidebar-foreground p-0 w-full max-w-[280px] sm:max-w-sm">
+              <SheetContent side="left" className="flex flex-col bg-background text-foreground p-0 w-full max-w-[280px] sm:max-w-sm">
                 <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
-                <SidebarHeader className="p-4">
+                <SidebarHeader className="p-4 border-b">
                   <Link href="/" className="flex items-center gap-3">
                     <Beef className="h-8 w-8 text-primary" />
-                    <h1 className="text-xl font-headline font-bold text-sidebar-foreground">
+                    <h1 className="text-xl font-headline font-bold text-foreground">
                       IB-Pro
                     </h1>
                   </Link>
