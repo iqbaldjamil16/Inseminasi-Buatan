@@ -4,6 +4,243 @@ import React, { useMemo, useEffect, type ReactNode } from 'react';
 import { FirebaseProvider } from '@/firebase/provider';
 import { initializeFirebase } from '@/firebase';
 import { onAuthStateChanged, signInAnonymously, type Auth } from 'firebase/auth';
+import { getFirestore, collection, getDocs, writeBatch, serverTimestamp, doc } from 'firebase/firestore';
+
+
+// Sample data to seed the database
+const sampleData = [
+  // --- Puskeswan Topoyo ---
+  {
+    inseminationDate: new Date('2024-05-10'),
+    staffName: 'drh. Iqbal Djamil',
+    puskeswan: 'Puskeswan Topoyo',
+    breederName: 'Andi Peternak',
+    breederAddress: 'Desa Topoyo',
+    phoneNumber: '081234567890',
+    breederId: '1234567890123456',
+    cowType: 'Sapi Brahman',
+    cowId: 'TPY-001',
+    strawType: 'Sapi Limosin',
+    strawId: 'LMSN-01',
+    strawBatchId: 'B01-LMSN',
+    strawProducer: 'BIB Lembang',
+  },
+  {
+    inseminationDate: new Date('2024-05-15'),
+    staffName: 'Alfons B',
+    puskeswan: 'Puskeswan Topoyo',
+    breederName: 'Budi Daya',
+    breederAddress: 'Desa Waeputeh',
+    phoneNumber: '081234567891',
+    breederId: '1234567890123457',
+    cowType: 'Sapi Bali',
+    cowId: 'TPY-002',
+    strawType: 'Sapi Simental',
+    strawId: 'SMTL-02',
+    strawBatchId: 'B02-SMTL',
+    strawProducer: 'BIB Singosari',
+  },
+  {
+    inseminationDate: new Date('2024-06-02'),
+    staffName: 'Haslim',
+    puskeswan: 'Puskeswan Topoyo',
+    breederName: 'Citra Ternak',
+    breederAddress: 'Desa Tabolang',
+    phoneNumber: '081234567892',
+    breederId: '1234567890123458',
+    cowType: 'Sapi Brahman',
+    cowId: 'TPY-003',
+    strawType: 'Sapi Limosin',
+    strawId: 'LMSN-01',
+    strawBatchId: 'B01-LMSN',
+    strawProducer: 'BIB Lembang',
+  },
+  // --- Puskeswan Karossa ---
+  {
+    inseminationDate: new Date('2024-05-20'),
+    staffName: 'Asari Rasyid',
+    puskeswan: 'Puskeswan Karossa',
+    breederName: 'Dedi Makmur',
+    breederAddress: 'Desa Karossa',
+    phoneNumber: '082345678901',
+    breederId: '2345678901234567',
+    cowType: 'Sapi Donggala',
+    cowId: 'KRS-001',
+    strawType: 'Sapi Angus',
+    strawId: 'ANGS-03',
+    strawBatchId: 'B03-ANGS',
+    strawProducer: 'BIB Maros',
+  },
+  {
+    inseminationDate: new Date('2024-06-05'),
+    staffName: 'drh. Stephani',
+    puskeswan: 'Puskeswan Karossa',
+    breederName: 'Eka Farm',
+    breederAddress: 'Desa Lara',
+    phoneNumber: '082345678902',
+    breederId: '2345678901234568',
+    cowType: 'Sapi Simental',
+    cowId: 'KRS-002',
+    strawType: 'Sapi Simental',
+    strawId: 'SMTL-02',
+    strawBatchId: 'B02-SMTL',
+    strawProducer: 'BIB Singosari',
+  },
+    {
+    inseminationDate: new Date('2024-06-10'),
+    staffName: 'Basuki',
+    puskeswan: 'Puskeswan Karossa',
+    breederName: 'Fajar Sentosa',
+    breederAddress: 'Desa Kayucalla',
+    phoneNumber: '082345678903',
+    breederId: '2345678901234569',
+    cowType: 'Sapi Bali',
+    cowId: 'KRS-003',
+    strawType: 'Sapi Limosin',
+    strawId: 'LMSN-01',
+    strawBatchId: 'B01-LMSN',
+    strawProducer: 'BIB Lembang',
+  },
+  // --- Puskeswan Pangale ---
+  {
+    inseminationDate: new Date('2024-07-01'),
+    staffName: 'drh. Ketut Elok',
+    puskeswan: 'Puskeswan Pangale',
+    breederName: 'Gita Pertiwi',
+    breederAddress: 'Desa Pangale',
+    phoneNumber: '083456789012',
+    breederId: '3456789012345678',
+    cowType: 'Sapi Madura',
+    cowId: 'PGL-001',
+    strawType: 'Sapi Brahman',
+    strawId: 'BRMN-04',
+    strawBatchId: 'B04-BRMN',
+    strawProducer: 'BIB Maros',
+  },
+  {
+    inseminationDate: new Date('2024-07-08'),
+    staffName: 'Mansyur',
+    puskeswan: 'Puskeswan Pangale',
+    breederName: 'Hari Tani',
+    breederAddress: 'Desa Lemo-Lemo',
+    phoneNumber: '083456789013',
+    breederId: '3456789012345679',
+    cowType: 'Sapi Simental',
+    cowId: 'PGL-002',
+    strawType: 'Sapi Simental',
+    strawId: 'SMTL-05',
+    strawBatchId: 'B05-SMTL',
+    strawProducer: 'BIB Singosari',
+  },
+  // --- Puskeswan Budong-Budong ---
+  {
+    inseminationDate: new Date('2024-06-12'),
+    staffName: 'Anshari Saleh',
+    puskeswan: 'Puskeswan Budong-Budong',
+    breederName: 'Indah Jaya',
+    breederAddress: 'Desa Barakkang',
+    phoneNumber: '084567890123',
+    breederId: '4567890123456789',
+    cowType: 'Sapi Bali',
+    cowId: 'BDB-001',
+    strawType: 'Sapi Limosin',
+    strawId: 'LMSN-01',
+    strawBatchId: 'B01-LMSN',
+    strawProducer: 'BIB Lembang',
+  },
+    {
+    inseminationDate: new Date('2024-07-15'),
+    staffName: 'Hadi',
+    puskeswan: 'Puskeswan Budong-Budong',
+    breederName: 'Joko Farm',
+    breederAddress: 'Desa Salogatta',
+    phoneNumber: '084567890124',
+    breederId: '4567890123456780',
+    cowType: 'Sapi Brahman',
+    cowId: 'BDB-002',
+    strawType: 'Sapi Brahman',
+    strawId: 'BRMN-04',
+    strawBatchId: 'B04-BRMN',
+    strawProducer: 'BIB Maros',
+  },
+  // --- Puskeswan Tobadak ---
+  {
+    inseminationDate: new Date('2024-07-20'),
+    staffName: 'drh. Ishak',
+    puskeswan: 'Puskeswan Tobadak',
+    breederName: 'Karya Mandiri',
+    breederAddress: 'Desa Tobadak',
+    phoneNumber: '085678901234',
+    breederId: '5678901234567890',
+    cowType: 'Sapi Angus',
+    cowId: 'TBD-001',
+    strawType: 'Sapi Angus',
+    strawId: 'ANGS-03',
+    strawBatchId: 'B03-ANGS',
+    strawProducer: 'BIB Singosari',
+  },
+  {
+    inseminationDate: new Date('2024-08-01'),
+    staffName: 'Endang',
+    puskeswan: 'Puskeswan Tobadak',
+    breederName: 'Lestari Ternak',
+    breederAddress: 'Desa Batu Parigi',
+    phoneNumber: '085678901235',
+    breederId: '5678901234567891',
+    cowType: 'Sapi Limosin',
+    cowId: 'TBD-002',
+    strawType: 'Sapi Limosin',
+    strawId: 'LMSN-06',
+    strawBatchId: 'B06-LMSN',
+    strawProducer: 'BIB Lembang',
+  },
+    {
+    inseminationDate: new Date('2024-08-05'),
+    staffName: 'drh. Iqbal Djamil',
+    puskeswan: 'Puskeswan Topoyo',
+    breederName: 'Maju Bersama',
+    breederAddress: 'Desa Tumbu',
+    phoneNumber: '081234567893',
+    breederId: '1234567890123459',
+    cowType: 'Sapi Simental',
+    cowId: 'TPY-004',
+    strawType: 'Sapi Angus',
+    strawId: 'ANGS-03',
+    strawBatchId: 'B03-ANGS',
+    strawProducer: 'BIB Maros',
+  },
+  {
+    inseminationDate: new Date('2024-08-10'),
+    staffName: 'drh. Stephani',
+    puskeswan: 'Puskeswan Karossa',
+    breederName: 'Nurul Huda Farm',
+    breederAddress: 'Desa Sukamaju',
+    phoneNumber: '082345678904',
+    breederId: '2345678901234570',
+    cowType: 'Sapi Donggala',
+    cowId: 'KRS-004',
+    strawType: 'Sapi Brahman',
+    strawId: 'BRMN-04',
+    strawBatchId: 'B04-BRMN',
+    strawProducer: 'BIB Singosari',
+  },
+  {
+    inseminationDate: new Date('2024-08-12'),
+    staffName: 'drh. Ketut Elok',
+    puskeswan: 'Puskeswan Pangale',
+    breederName: 'Pandu Group',
+    breederAddress: 'Desa Polo Camba',
+    phoneNumber: '083456789014',
+    breederId: '3456789012345680',
+    cowType: 'Sapi Bali',
+    cowId: 'PGL-003',
+    strawType: 'Sapi Limosin',
+    strawId: 'LMSN-01',
+    strawBatchId: 'B01-LMSN',
+    strawProducer: 'BIB Lembang',
+  },
+];
+
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
@@ -30,6 +267,39 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
       return () => unsubscribe();
     }
   }, [firebaseServices.auth]);
+
+  // useEffect to seed the database with sample data if it's empty
+  useEffect(() => {
+    const seedDatabase = async () => {
+      if (!firebaseServices.firestore) return;
+      const db = firebaseServices.firestore;
+      const recordsCollectionRef = collection(db, 'inseminationRecords');
+
+      try {
+        const querySnapshot = await getDocs(recordsCollectionRef);
+        if (querySnapshot.empty) {
+          console.log('inseminationRecords collection is empty. Seeding data...');
+          const batch = writeBatch(db);
+          sampleData.forEach((record) => {
+            const docRef = doc(collection(db, 'inseminationRecords')); // Create a new doc with a random ID
+            batch.set(docRef, { ...record, createdAt: serverTimestamp() });
+          });
+          await batch.commit();
+          console.log('Sample data seeded successfully.');
+        }
+      } catch (error) {
+        console.error('Error seeding database:', error);
+      }
+    };
+
+    if (firebaseServices.firestore) {
+        // A one-time flag to ensure seeding only happens once per session, not on every HMR.
+        if (!(window as any).__hasSeeded) {
+            seedDatabase();
+            (window as any).__hasSeeded = true;
+        }
+    }
+  }, [firebaseServices.firestore]);
 
   return (
     <FirebaseProvider
