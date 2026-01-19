@@ -26,7 +26,7 @@ interface StatisticsViewProps {
 const chartConfig = {
   count: {
     label: 'Jumlah',
-    color: 'hsl(var(--chart-1))',
+    color: 'hsl(var(--primary))',
   },
 } satisfies ChartConfig;
 
