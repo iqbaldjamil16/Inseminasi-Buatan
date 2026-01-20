@@ -14,8 +14,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
+  ChartLegend,
+  ChartLegendContent,
 } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, LabelList, PieChart, Pie } from 'recharts';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { MamujuTengahMap } from './mamuju-tengah-map';
@@ -62,7 +64,7 @@ const CustomBarChart = ({ data, title, description, total }: { data: any[], titl
                     offset={8}
                     className="fill-foreground"
                     fontSize={12}
-                    formatter={(value: number) => `${value} (${((value / total) * 100).toFixed(0)}%)`}
+                    formatter={(value: number) => `${value} (${total > 0 ? ((value / total) * 100).toFixed(0) : 0}%)`}
                 />
             </Bar>
           </BarChart>
@@ -123,6 +125,31 @@ export function StatisticsView({ records }: StatisticsViewProps) {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
   }, [records]);
+  
+  const puskeswanChartConfig = useMemo(() => {
+    const config: ChartConfig = {};
+    puskeswanStats.forEach((stat, index) => {
+        const key = stat.name.replace(/[\s-]/g, '_');
+        config[key] = {
+            label: stat.name,
+            color: `hsl(var(--chart-${index + 1}))`,
+        };
+    });
+    return config;
+  }, [puskeswanStats]);
+
+  const puskeswanPieData = useMemo(() => {
+    if (totalRecords === 0) return [];
+    return puskeswanStats.map(stat => {
+        const key = stat.name.replace(/[\s-]/g, '_');
+        return {
+            ...stat,
+            name: key,
+            originalName: stat.name,
+            fill: `var(--color-${key})`,
+        };
+    });
+  }, [puskeswanStats, totalRecords]);
 
   if (records.length === 0) {
     return (
@@ -152,7 +179,40 @@ export function StatisticsView({ records }: StatisticsViewProps) {
         </Card>
         <CustomBarChart data={sortedMonthlyStats} total={totalRecords} title="Statistik Bulanan" description="Total data inseminasi yang diinput setiap bulan." />
         <CustomBarChart data={staffStats} total={totalRecords} title="Statistik per Petugas" description="Total data yang diinput oleh masing-masing petugas." />
-        <CustomBarChart data={puskeswanStats} total={totalRecords} title="Statistik per Puskeswan" description="Total data yang berasal dari masing-masing puskeswan." />
+        
+        <Card>
+            <CardHeader>
+                <CardTitle>Statistik per Puskeswan</CardTitle>
+                <CardDescription>Distribusi persentase data dari masing-masing puskeswan.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center justify-center">
+                 <ChartContainer
+                    config={puskeswanChartConfig}
+                    className="mx-auto aspect-square h-[350px]"
+                >
+                    <PieChart>
+                        <ChartTooltip
+                            cursor={false}
+                            content={<ChartTooltipContent hideLabel nameKey="originalName" />}
+                        />
+                        <Pie
+                            data={puskeswanPieData}
+                            dataKey="count"
+                            nameKey="name"
+                            innerRadius={60}
+                            outerRadius={120}
+                            strokeWidth={2}
+                            labelLine={false}
+                            label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                        />
+                        <ChartLegend
+                            content={<ChartLegendContent nameKey="originalName" />}
+                            className="-mt-4"
+                        />
+                    </PieChart>
+                </ChartContainer>
+            </CardContent>
+        </Card>
     </div>
   );
 }
