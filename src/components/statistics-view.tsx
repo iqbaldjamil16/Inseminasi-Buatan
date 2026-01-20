@@ -18,6 +18,7 @@ import {
 import { BarChart, Bar, XAxis, YAxis, LabelList } from 'recharts';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { MamujuTengahMap } from './mamuju-tengah-map';
 
 interface StatisticsViewProps {
   records: InseminationRecord[];
@@ -138,6 +139,17 @@ export function StatisticsView({ records }: StatisticsViewProps) {
   
   return (
     <div className="grid gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Peta Sebaran Inseminasi</CardTitle>
+            <CardDescription>
+              Visualisasi jumlah inseminasi buatan per kecamatan di Mamuju Tengah.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <MamujuTengahMap data={puskeswanStats} total={totalRecords} />
+          </CardContent>
+        </Card>
         <CustomBarChart data={sortedMonthlyStats} total={totalRecords} title="Statistik Bulanan" description="Total data inseminasi yang diinput setiap bulan." />
         <CustomBarChart data={staffStats} total={totalRecords} title="Statistik per Petugas" description="Total data yang diinput oleh masing-masing petugas." />
         <CustomBarChart data={puskeswanStats} total={totalRecords} title="Statistik per Puskeswan" description="Total data yang berasal dari masing-masing puskeswan." />
