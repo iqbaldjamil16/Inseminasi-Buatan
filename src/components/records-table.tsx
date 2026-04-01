@@ -217,7 +217,6 @@ export function RecordsTable() {
             .replace(/'/g, '&apos;');
     };
 
-    // Grouping data by staff for sheets if "Semua Petugas" is selected
     const groups: Record<string, InseminationRecord[]> = {};
     if (selectedStaff !== 'all') {
       const name = filteredData[0]?.staffName || 'Laporan';
@@ -230,7 +229,6 @@ export function RecordsTable() {
       });
     }
 
-    // SpreadsheetML (XML Spreadsheet 2003) content
     let xml = `<?xml version="1.0"?>
 <?mso-application progid="Excel.Sheet"?>
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
@@ -243,19 +241,63 @@ export function RecordsTable() {
   <Created>${new Date().toISOString()}</Created>
  </DocumentProperties>
  <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000"/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
   <Style ss:ID="Header">
-   <Font ss:Bold="1"/>
-   <Interior ss:Color="#E1E1E1" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+   <Font ss:Bold="1" ss:Size="11"/>
+   <Interior ss:Color="#D9EAD3" ss:Pattern="Solid"/>
+  </Style>
+  <Style ss:ID="DataCell">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="StaffNameStyle">
+   <Font ss:Bold="1" ss:Size="12"/>
   </Style>
  </Styles>`;
 
     Object.entries(groups).forEach(([staffName, records]) => {
-      // Clean sheet name (max 31 chars, no forbidden chars)
       const sheetName = escapeXml(staffName.substring(0, 31).replace(/[:\\\?\*\[\]\/]/g, ''));
       
       xml += `\n <Worksheet ss:Name="${sheetName}">
   <Table>
-   <Row ss:StyleID="Header">
+   <Column ss:Width="80"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="150"/>
+   <Column ss:Width="100"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="100"/>
+   <Column ss:Width="100"/>
+   <Column ss:Width="100"/>
+   <Column ss:Width="100"/>
+   <Column ss:Width="100"/>
+   <Column ss:Width="100"/>
+   
+   <Row ss:Height="15"></Row>
+   <Row ss:Height="15"></Row>
+   <Row ss:Height="20">
+    <Cell ss:StyleID="StaffNameStyle"><Data ss:Type="String">${escapeXml(staffName)}</Data></Cell>
+   </Row>
+   <Row ss:StyleID="Header" ss:Height="20">
     ${headers.map(h => `<Cell><Data ss:Type="String">${escapeXml(h)}</Data></Cell>`).join('')}
    </Row>`;
 
@@ -276,8 +318,8 @@ export function RecordsTable() {
           record.strawProducer,
         ];
 
-        xml += `\n   <Row>
-    ${rowData.map(val => `<Cell><Data ss:Type="String">${escapeXml(val)}</Data></Cell>`).join('')}
+        xml += `\n   <Row ss:Height="15">
+    ${rowData.map(val => `<Cell ss:StyleID="DataCell"><Data ss:Type="String">${escapeXml(val)}</Data></Cell>`).join('')}
    </Row>`;
       });
 
@@ -354,7 +396,6 @@ export function RecordsTable() {
         </CardHeader>
       </Card>
 
-      {/* New Filter Card */}
       <Card>
         <CardHeader>
             <CardTitle className="text-lg">Data Laporan IB</CardTitle>
@@ -400,7 +441,6 @@ export function RecordsTable() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col gap-4">
-            {/* Filters Row */}
             <div className="flex flex-col sm:flex-row items-center gap-2">
               <div className="grid grid-cols-2 gap-2 w-full sm:flex-1">
                 <Select onValueChange={setSelectedMonth} value={selectedMonth}>
@@ -437,7 +477,6 @@ export function RecordsTable() {
               </div>
             </div>
 
-            {/* View Switcher Row */}
             <div className="flex flex-col sm:flex-row justify-start items-center gap-4">
               <div className="flex items-center bg-muted p-1 rounded-lg w-full sm:w-auto">
                 <Button 
@@ -461,11 +500,9 @@ export function RecordsTable() {
               </div>
             </div>
 
-            {/* Content Area */}
             {view === 'table' ? (
               isLoading ? <TableSkeleton /> : (
                 <div className="w-full">
-                  {/* Mobile View */}
                   <div className="md:hidden">
                     <Accordion type="single" collapsible className="w-full space-y-4">
                       {filteredData.length > 0 ? (
@@ -509,7 +546,6 @@ export function RecordsTable() {
                     </Accordion>
                   </div>
         
-                  {/* Desktop View */}
                   <div className="hidden md:block">
                       <Table>
                       <TableHeader>
@@ -571,7 +607,6 @@ export function RecordsTable() {
         </CardContent>
       </Card>
 
-      {/* Edit Dialog */}
       <Dialog open={!!editingRecord} onOpenChange={(open) => !open && setEditingRecord(null)}>
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
@@ -660,8 +695,6 @@ export function RecordsTable() {
           </DialogContent>
       </Dialog>
 
-
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deletingRecord} onOpenChange={(open) => !open && setDeletingRecord(null)}>
           <AlertDialogContent>
               <AlertDialogHeader>
