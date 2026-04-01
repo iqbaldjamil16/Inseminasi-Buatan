@@ -289,170 +289,187 @@ export function RecordsTable() {
             Lihat, cari, ekspor, dan analisis semua data inseminasi yang telah tercatat.
           </CardDescription>
         </CardHeader>
-        <CardFooter className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-0">
-          <div className="flex items-center">
-            <Button variant={view === 'table' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('table')} className="mr-2">
-                <TableIcon className="mr-2 h-4 w-4" />
-                Tabel
-            </Button>
-            <Button variant={view === 'stats' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('stats')}>
-                <BarChart className="mr-2 h-4 w-4" />
-                Statistik
-            </Button>
-          </div>
-          {view === 'table' && (
-            <Button onClick={exportToCSV} disabled={isLoading || filteredData.length === 0}>
-              <Download className="mr-2 h-4 w-4" />
-              Unduh Laporan
-            </Button>
-          )}
-        </CardFooter>
       </Card>
       
-      {view === 'table' ? (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row items-center gap-2 pb-4">
-                <div className="grid grid-cols-2 gap-2 w-full sm:flex-1">
-                    <Select onValueChange={setSelectedMonth} value={selectedMonth}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Pilih Bulan" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Semua Bulan</SelectItem>
-                            {months.map(month => (
-                                <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <Select onValueChange={setSelectedYear} value={selectedYear}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Pilih Tahun" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Semua Tahun</SelectItem>
-                            {availableYears.map(year => (
-                                <SelectItem key={year} value={year}>{year}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="relative w-full sm:flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                        placeholder="Cari nama, eartag, KTP, atau tanggal..."
-                        className="pl-10"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col gap-4">
+            {/* Filters Row */}
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              <div className="grid grid-cols-2 gap-2 w-full sm:flex-1">
+                <Select onValueChange={setSelectedMonth} value={selectedMonth}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Bulan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Bulan</SelectItem>
+                    {months.map(month => (
+                      <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select onValueChange={setSelectedYear} value={selectedYear}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Tahun" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Tahun</SelectItem>
+                    {availableYears.map(year => (
+                      <SelectItem key={year} value={year}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="relative w-full sm:flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Cari nama, eartag, KTP, atau tanggal..."
+                  className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
-            {isLoading ? <TableSkeleton /> : (
-            <ScrollArea className="h-[calc(100vh-480px)] md:h-[calc(100vh-460px)]">
-            {/* Mobile View */}
-            <div className="md:hidden pr-4">
-              <Accordion type="single" collapsible className="w-full space-y-4">
-                {filteredData.length > 0 ? (
-                  filteredData.map((record) => (
-                    <AccordionItem value={record.id!} key={record.id!} className="border rounded-lg">
-                      <AccordionTrigger className="p-4 hover:no-underline">
-                        <div className="flex items-center justify-between w-full">
-                            <div className="flex-1 text-left">
-                                <div className="font-bold">{record.staffName}</div>
-                                <div className="text-sm text-muted-foreground">{record.puskeswan}</div>
-                                <div className="text-xs text-muted-foreground pt-1">{record.inseminationDate ? format(new Date(record.inseminationDate), 'dd/MM/yyyy') : 'N/A'}</div>
-                            </div>
-                            <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="p-4 pt-0">
-                        <div className="space-y-2 border-t pt-4">
-                          <RecordDetailRow label="Nama Peternak" value={record.breederName} />
-                          <RecordDetailRow label="Alamat" value={record.breederAddress} />
-                          <RecordDetailRow label="No. HP" value={record.phoneNumber} />
-                          <RecordDetailRow label="ID Peternak (KTP)" value={record.breederId} />
-                          <RecordDetailRow label="Jenis Sapi" value={record.cowType} />
-                          <RecordDetailRow label="ID Sapi (Eartag)" value={record.cowId} />
-                          <RecordDetailRow label="Jenis Straw" value={record.strawType} />
-                          <RecordDetailRow label="ID Pejantan" value={record.strawId} />
-                          <RecordDetailRow label="ID Batch" value={record.strawBatchId} />
-                          <RecordDetailRow label="Produsen Straw" value={record.strawProducer} />
-                          <div className="flex justify-end gap-2 pt-4">
-                              <Button variant="outline" size="icon" onClick={() => setEditingRecord(record)}><FilePenLine className="h-4 w-4" /></Button>
-                              <Button variant="destructive" size="icon" onClick={() => setDeletingRecord(record)}><Trash2 className="h-4 w-4" /></Button>
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))
-                ) : (
-                  <div className="text-center text-muted-foreground py-12">
-                    {(recordsData && recordsData.length > 0) ? 'Tidak ada data yang cocok.' : 'Belum ada data tercatat.'}
-                  </div>
-                )}
-              </Accordion>
+
+            {/* View Switcher & Actions Row */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="flex items-center bg-muted p-1 rounded-lg w-full sm:w-auto">
+                <Button 
+                  variant={view === 'table' ? 'secondary' : 'ghost'} 
+                  size="sm" 
+                  onClick={() => setView('table')} 
+                  className="flex-1 sm:flex-none"
+                >
+                  <TableIcon className="mr-2 h-4 w-4" />
+                  Tabel
+                </Button>
+                <Button 
+                  variant={view === 'stats' ? 'secondary' : 'ghost'} 
+                  size="sm" 
+                  onClick={() => setView('stats')}
+                  className="flex-1 sm:flex-none"
+                >
+                  <BarChart className="mr-2 h-4 w-4" />
+                  Statistik
+                </Button>
+              </div>
+              {view === 'table' && (
+                <Button onClick={exportToCSV} disabled={isLoading || filteredData.length === 0} className="w-full sm:w-auto">
+                  <Download className="mr-2 h-4 w-4" />
+                  Unduh Laporan
+                </Button>
+              )}
             </div>
-  
-            {/* Desktop View */}
-            <div className="hidden md:block">
-                <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Tanggal</TableHead>
-                        <TableHead>Peternak</TableHead>
-                        <TableHead>ID Sapi</TableHead>
-                        <TableHead>Pejantan</TableHead>
-                        <TableHead>Petugas</TableHead>
-                        <TableHead className="text-right">Aksi</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {filteredData.length > 0 ? (
+
+            {/* Content Area */}
+            {view === 'table' ? (
+              isLoading ? <TableSkeleton /> : (
+                <ScrollArea className="h-[calc(100vh-480px)] md:h-[calc(100vh-460px)]">
+                  {/* Mobile View */}
+                  <div className="md:hidden pr-4">
+                    <Accordion type="single" collapsible className="w-full space-y-4">
+                      {filteredData.length > 0 ? (
                         filteredData.map((record) => (
-                            <TableRow key={record.id}>
-                                <TableCell>{record.inseminationDate ? format(new Date(record.inseminationDate), 'dd/MM/yyyy') : 'N/A'}</TableCell>
-                                <TableCell>
-                                    <div className="font-medium">{record.breederName}</div>
-                                    <div className="text-sm text-muted-foreground">{record.breederId}</div>
-                                </TableCell>
-                                <TableCell>{record.cowId}</TableCell>
-                                <TableCell>
-                                    <div className="font-medium">{record.strawType}</div>
-                                    <div className="text-sm text-muted-foreground">{record.strawId}</div>
-                                </TableCell>
-                                <TableCell>
-                                  <div className="font-medium">{record.staffName}</div>
-                                  <div className="text-sm text-muted-foreground">{record.puskeswan}</div>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <div className="flex items-center justify-end gap-2">
-                                        <Button variant="ghost" size="icon" onClick={() => setEditingRecord(record)}>
-                                            <FilePenLine className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setDeletingRecord(record)}>
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
+                          <AccordionItem value={record.id!} key={record.id!} className="border rounded-lg">
+                            <AccordionTrigger className="p-4 hover:no-underline">
+                              <div className="flex items-center justify-between w-full">
+                                  <div className="flex-1 text-left">
+                                      <div className="font-bold">{record.staffName}</div>
+                                      <div className="text-sm text-muted-foreground">{record.puskeswan}</div>
+                                      <div className="text-xs text-muted-foreground pt-1">{record.inseminationDate ? format(new Date(record.inseminationDate), 'dd/MM/yyyy') : 'N/A'}</div>
+                                  </div>
+                                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="p-4 pt-0">
+                              <div className="space-y-2 border-t pt-4">
+                                <RecordDetailRow label="Nama Peternak" value={record.breederName} />
+                                <RecordDetailRow label="Alamat" value={record.breederAddress} />
+                                <RecordDetailRow label="No. HP" value={record.phoneNumber} />
+                                <RecordDetailRow label="ID Peternak (KTP)" value={record.breederId} />
+                                <RecordDetailRow label="Jenis Sapi" value={record.cowType} />
+                                <RecordDetailRow label="ID Sapi (Eartag)" value={record.cowId} />
+                                <RecordDetailRow label="Jenis Straw" value={record.strawType} />
+                                <RecordDetailRow label="ID Pejantan" value={record.strawId} />
+                                <RecordDetailRow label="ID Batch" value={record.strawBatchId} />
+                                <RecordDetailRow label="Produsen Straw" value={record.strawProducer} />
+                                <div className="flex justify-end gap-2 pt-4">
+                                    <Button variant="outline" size="icon" onClick={() => setEditingRecord(record)}><FilePenLine className="h-4 w-4" /></Button>
+                                    <Button variant="destructive" size="icon" onClick={() => setDeletingRecord(record)}><Trash2 className="h-4 w-4" /></Button>
+                                </div>
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
                         ))
-                    ) : (
-                        <TableRow>
-                            <TableCell colSpan={6} className="h-24 text-center">
-                            {(recordsData && recordsData.length > 0) ? 'Tidak ada data yang cocok.' : 'Belum ada data tercatat.'}
-                            </TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
-                </Table>
-            </div>
-            </ScrollArea>
+                      ) : (
+                        <div className="text-center text-muted-foreground py-12">
+                          {(recordsData && recordsData.length > 0) ? 'Tidak ada data yang cocok.' : 'Belum ada data tercatat.'}
+                        </div>
+                      )}
+                    </Accordion>
+                  </div>
+        
+                  {/* Desktop View */}
+                  <div className="hidden md:block">
+                      <Table>
+                      <TableHeader>
+                          <TableRow>
+                              <TableHead>Tanggal</TableHead>
+                              <TableHead>Peternak</TableHead>
+                              <TableHead>ID Sapi</TableHead>
+                              <TableHead>Pejantan</TableHead>
+                              <TableHead>Petugas</TableHead>
+                              <TableHead className="text-right">Aksi</TableHead>
+                          </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                          {filteredData.length > 0 ? (
+                              filteredData.map((record) => (
+                                  <TableRow key={record.id}>
+                                      <TableCell>{record.inseminationDate ? format(new Date(record.inseminationDate), 'dd/MM/yyyy') : 'N/A'}</TableCell>
+                                      <TableCell>
+                                          <div className="font-medium">{record.breederName}</div>
+                                          <div className="text-sm text-muted-foreground">{record.breederId}</div>
+                                      </TableCell>
+                                      <TableCell>{record.cowId}</TableCell>
+                                      <TableCell>
+                                          <div className="font-medium">{record.strawType}</div>
+                                          <div className="text-sm text-muted-foreground">{record.strawId}</div>
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="font-medium">{record.staffName}</div>
+                                        <div className="text-sm text-muted-foreground">{record.puskeswan}</div>
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                          <div className="flex items-center justify-end gap-2">
+                                              <Button variant="ghost" size="icon" onClick={() => setEditingRecord(record)}>
+                                                  <FilePenLine className="h-4 w-4" />
+                                              </Button>
+                                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setDeletingRecord(record)}>
+                                                  <Trash2 className="h-4 w-4" />
+                                              </Button>
+                                          </div>
+                                      </TableCell>
+                                  </TableRow>
+                              ))
+                          ) : (
+                              <TableRow>
+                                  <TableCell colSpan={6} className="h-24 text-center">
+                                  {(recordsData && recordsData.length > 0) ? 'Tidak ada data yang cocok.' : 'Belum ada data tercatat.'}
+                                  </TableCell>
+                              </TableRow>
+                          )}
+                      </TableBody>
+                      </Table>
+                  </div>
+                </ScrollArea>
+              )
+            ) : (
+              isLoading ? <StatsSkeleton /> : <StatisticsView records={parsedRecords} />
             )}
-          </CardContent>
-        </Card>
-      ) : (
-        isLoading ? <StatsSkeleton /> : <StatisticsView records={parsedRecords} />
-      )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Edit Dialog */}
       <Dialog open={!!editingRecord} onOpenChange={(open) => !open && setEditingRecord(null)}>
