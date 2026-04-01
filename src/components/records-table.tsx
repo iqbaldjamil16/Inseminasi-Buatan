@@ -202,8 +202,9 @@ export function RecordsTable() {
   const exportToExcel = () => {
     if (filteredData.length === 0) return;
 
+    // Menghapus 'Nama Petugas' dari header karena sudah ada di Baris 3
     const headers = [
-        'Tanggal IB', 'Nama Petugas', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
+        'Tanggal IB', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
         'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
     ];
 
@@ -274,12 +275,12 @@ export function RecordsTable() {
  </Styles>`;
 
     Object.entries(groups).forEach(([staffName, records]) => {
+      // Limit sheet name to 31 chars and remove forbidden chars
       const sheetName = escapeXml(staffName.substring(0, 31).replace(/[:\\\?\*\[\]\/]/g, ''));
       
       xml += `\n <Worksheet ss:Name="${sheetName}">
   <Table>
    <Column ss:Width="80"/>
-   <Column ss:Width="120"/>
    <Column ss:Width="120"/>
    <Column ss:Width="120"/>
    <Column ss:Width="150"/>
@@ -297,14 +298,14 @@ export function RecordsTable() {
    <Row ss:Height="20">
     <Cell ss:StyleID="StaffNameStyle"><Data ss:Type="String">${escapeXml(staffName)}</Data></Cell>
    </Row>
-   <Row ss:StyleID="Header" ss:Height="20">
-    ${headers.map(h => `<Cell><Data ss:Type="String">${escapeXml(h)}</Data></Cell>`).join('')}
+   <Row ss:Height="20">
+    ${headers.map(h => `<Cell ss:StyleID="Header"><Data ss:Type="String">${escapeXml(h)}</Data></Cell>`).join('')}
    </Row>`;
 
       records.forEach(record => {
+        // rowData mapping: staffName removed to match headers
         const rowData = [
           record.inseminationDate ? format(new Date(record.inseminationDate), 'yyyy-MM-dd') : '',
-          record.staffName,
           record.puskeswan,
           record.breederName,
           record.breederAddress,
@@ -350,7 +351,7 @@ export function RecordsTable() {
   const TableSkeleton = () => (
      <div className="space-y-2">
       {[...Array(5)].map((_, i) => (
-        <Skeleton key={i} className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
       ))}
     </div>
   );
