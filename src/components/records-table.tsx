@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { InseminationRecordSchema, type InseminationRecord } from '@/lib/types';
@@ -18,7 +18,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -152,7 +152,36 @@ export function RecordsTable() {
     resolver: zodResolver(InseminationRecordSchema),
   });
 
-  // Watch fields for dynamic form logic
+  // Dynamic staff options for the filter card
+  const staffFilterOptions = useMemo(() => {
+    const staffMap: Record<string, string[]> = {
+      'Puskeswan Budong-Budong': budongBudongStaff,
+      'Puskeswan Karossa': karossaStaff,
+      'Puskeswan Pangale': pangaleStaff,
+      'Puskeswan Tobadak': tobadakStaff,
+      'Puskeswan Topoyo': topoyoStaff,
+    };
+
+    if (selectedPuskeswan === 'all') {
+      const allUniqueStaff = new Set<string>();
+      parsedRecords.forEach(record => {
+        if (record.staffName) allUniqueStaff.add(record.staffName);
+      });
+      return Array.from(allUniqueStaff).sort();
+    }
+    
+    return staffMap[selectedPuskeswan] || [];
+  }, [selectedPuskeswan, parsedRecords]);
+
+  // Reset staff filter if current selection is not available in new puskeswan
+  useEffect(() => {
+    if (selectedPuskeswan !== 'all' && selectedStaff !== 'all') {
+      if (!staffFilterOptions.includes(selectedStaff)) {
+        setSelectedStaff('all');
+      }
+    }
+  }, [selectedPuskeswan, staffFilterOptions, selectedStaff]);
+
   const watchPuskeswan = form.watch('puskeswan');
   const watchStaffName = form.watch('staffName');
   const watchBreederAddress = form.watch('breederAddress');
@@ -160,7 +189,7 @@ export function RecordsTable() {
   const watchStrawType = form.watch('strawType');
   const watchStrawProducer = form.watch('strawProducer');
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (editingRecord) {
       form.reset({
         ...editingRecord,
@@ -218,15 +247,6 @@ export function RecordsTable() {
     { value: '6', label: 'Juli' }, { value: '7', label: 'Agustus' }, { value: '8', label: 'September' },
     { value: '9', label: 'Oktober' }, { value: '10', label: 'November' }, { value: '11', label: 'Desember' }
   ];
-
-  const allStaff = useMemo(() => {
-    if (!parsedRecords) return [];
-    const staff = new Set<string>();
-    parsedRecords.forEach(record => {
-      if (record.staffName) staff.add(record.staffName);
-    });
-    return Array.from(staff).sort();
-  }, [parsedRecords]);
 
   const filteredData = useMemo(() => {
     if (!parsedRecords) return [];
@@ -474,7 +494,9 @@ export function RecordsTable() {
         <CardContent className="space-y-4">
             <div className="space-y-2">
                 <Label htmlFor="filter-puskeswan">Puskeswan</Label>
-                <Select onValueChange={setSelectedPuskeswan} value={selectedPuskeswan}>
+                <Select onValueChange={(val) => {
+                  setSelectedPuskeswan(val);
+                }} value={selectedPuskeswan}>
                     <SelectTrigger id="filter-puskeswan">
                         <SelectValue placeholder="Semua Puskeswan" />
                     </SelectTrigger>
@@ -495,7 +517,7 @@ export function RecordsTable() {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">Semua Petugas</SelectItem>
-                        {allStaff.map(staff => (
+                        {staffFilterOptions.map(staff => (
                             <SelectItem key={staff} value={staff}>{staff}</SelectItem>
                         ))}
                     </SelectContent>
