@@ -61,7 +61,6 @@ import { useCollection, useFirestore, useMemoFirebase, useUser, updateDocumentNo
 import { collection, doc } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { ScrollArea } from './ui/scroll-area';
 import { StatisticsView } from './statistics-view';
 
 
@@ -364,9 +363,9 @@ export function RecordsTable() {
             {/* Content Area */}
             {view === 'table' ? (
               isLoading ? <TableSkeleton /> : (
-                <ScrollArea className="h-[calc(100vh-480px)] md:h-[calc(100vh-460px)]">
+                <div className="w-full">
                   {/* Mobile View */}
-                  <div className="md:hidden pr-4">
+                  <div className="md:hidden">
                     <Accordion type="single" collapsible className="w-full space-y-4">
                       {filteredData.length > 0 ? (
                         filteredData.map((record) => (
@@ -462,7 +461,7 @@ export function RecordsTable() {
                       </TableBody>
                       </Table>
                   </div>
-                </ScrollArea>
+                </div>
               )
             ) : (
               isLoading ? <StatsSkeleton /> : <StatisticsView records={parsedRecords} />
