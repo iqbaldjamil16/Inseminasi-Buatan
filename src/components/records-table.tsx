@@ -304,7 +304,7 @@ export function RecordsTable() {
       {/* New Filter Card */}
       <Card>
         <CardHeader>
-            <CardTitle className="text-lg">Filter Data</CardTitle>
+            <CardTitle className="text-lg">Data Laporan IB</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
             <div className="space-y-2">
