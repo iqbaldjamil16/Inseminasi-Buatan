@@ -18,7 +18,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -64,6 +64,59 @@ import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { StatisticsView } from './statistics-view';
 
+// Master Data Definitions (Synced with InseminationForm)
+const topoyoVillages = [
+  'Desa Bambamanurug', 'Desa Budong-Budong', 'Desa Kabubu', 'Desa Pangalloang', 
+  'Desa Paraili', 'Desa Salule\'bo', 'Desa Salupangkang', 'Desa Salupangkang IV', 
+  'Desa Sinabatta', 'Desa Tabolang', 'Desa Tangkau', 'Desa Tappilina', 
+  'Desa Topoyo', 'Desa Tumbu', 'Desa Waeputeh'
+].sort();
+
+const tobadakVillages = [
+  'Desa Bambadaru', 'Desa Batu Parigi', 'Desa Mahahe', 'Desa Polongaan', 
+  'Desa Saluadak', 'Desa Sejati', 'Desa Sulobaja', 'Desa Tobadak'
+].sort();
+
+const pangaleVillages = [
+    'Desa Kombiling', 'Desa Kuo', 'Desa Lamba-lamba', 'Desa Lemo-Lemo', 
+    'Desa Pangale', 'Desa Polo Camba', 'Desa Polo Lereng', 'Desa Polo Pangale', 
+    'Desa Sartanamaju'
+].sort();
+
+const budongBudongVillages = [
+  'Desa Babana', 'Desa Barakkang', 'Desa Bojo', 'Desa Kire', 'Desa Lembah Hada', 
+  'Desa Lumu', 'Desa Pasapa', 'Desa Potantanakayyang', 'Desa Salogatta', 
+  'Desa Salumanurung', 'Desa Tinali'
+].sort();
+
+const karossaVillages = [
+  'Desa Benggaulu', 'Desa Kadaila', 'Desa Karossa', 'Desa Kayucalla', 'Desa Lara',
+  'Desa Lembah Hopo', 'Desa Salubiro', 'Desa Sanjango', 'Desa Sukamaju', 
+  'Desa Tasoskko', 'Desa Kambunong', 'Mora IV', 'UPT Lara III'
+].sort();
+
+const budongBudongStaff = ['Anshari Saleh', 'Hadi', 'Rahman'].sort();
+const karossaStaff = ['Asari Rasyid', 'drh. Stephani', 'Basuki', 'Hasaruddin'].sort();
+const pangaleStaff = ['drh. Ketut Elok', 'Mansyur', 'Jawaril', 'Sugeng'].sort();
+const tobadakStaff = ['Endang', 'drh. Ishak'].sort();
+const topoyoStaff = ['drh. Iqbal Djamil', 'Alfons B', 'Haslim'].sort();
+
+const puskeswanOptions = [
+  'Puskeswan Budong-Budong',
+  'Puskeswan Karossa',
+  'Puskeswan Pangale',
+  'Puskeswan Tobadak',
+  'Puskeswan Topoyo',
+];
+
+const commonSapiOptions = [
+  'Sapi Angus', 'Sapi Bali', 'Sapi Brahman', 'Sapi Donggala', 
+  'Sapi Limosin', 'Sapi Madura', 'Sapi Simental'
+].sort();
+
+const producerOptions = [
+  'BIB Lembang', 'BIB Maros', 'BIB Singosari'
+].sort();
 
 export function RecordsTable() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -98,6 +151,14 @@ export function RecordsTable() {
   const form = useForm<InseminationRecord>({
     resolver: zodResolver(InseminationRecordSchema),
   });
+
+  // Watch fields for dynamic form logic
+  const watchPuskeswan = form.watch('puskeswan');
+  const watchStaffName = form.watch('staffName');
+  const watchBreederAddress = form.watch('breederAddress');
+  const watchCowType = form.watch('cowType');
+  const watchStrawType = form.watch('strawType');
+  const watchStrawProducer = form.watch('strawProducer');
 
   React.useEffect(() => {
     if (editingRecord) {
@@ -158,14 +219,6 @@ export function RecordsTable() {
     { value: '9', label: 'Oktober' }, { value: '10', label: 'November' }, { value: '11', label: 'Desember' }
   ];
 
-  const puskeswanOptions = [
-    'Puskeswan Budong-Budong',
-    'Puskeswan Karossa',
-    'Puskeswan Pangale',
-    'Puskeswan Tobadak',
-    'Puskeswan Topoyo',
-  ];
-
   const allStaff = useMemo(() => {
     if (!parsedRecords) return [];
     const staff = new Set<string>();
@@ -202,7 +255,6 @@ export function RecordsTable() {
   const exportToExcel = () => {
     if (filteredData.length === 0) return;
 
-    // Menghapus 'Nama Petugas' dari header karena sudah ada di Baris 3
     const headers = [
         'Tanggal IB', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
         'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
@@ -275,7 +327,6 @@ export function RecordsTable() {
  </Styles>`;
 
     Object.entries(groups).forEach(([staffName, records]) => {
-      // Limit sheet name to 31 chars and remove forbidden chars
       const sheetName = escapeXml(staffName.substring(0, 31).replace(/[:\\\?\*\[\]\/]/g, ''));
       
       xml += `\n <Worksheet ss:Name="${sheetName}">
@@ -303,7 +354,6 @@ export function RecordsTable() {
    </Row>`;
 
       records.forEach(record => {
-        // rowData mapping: staffName removed to match headers
         const rowData = [
           record.inseminationDate ? format(new Date(record.inseminationDate), 'yyyy-MM-dd') : '',
           record.puskeswan,
@@ -340,7 +390,6 @@ export function RecordsTable() {
     document.body.removeChild(link);
   };
 
-
   const RecordDetailRow = ({ label, value }: { label: string, value: string | number | undefined }) => (
     <div className="flex justify-between text-sm py-1">
       <span className="text-muted-foreground">{label}</span>
@@ -372,19 +421,40 @@ export function RecordsTable() {
     </div>
   );
 
-  const formFields: { name: keyof InseminationRecord; label: string }[] = [
-    { name: 'staffName', label: 'Nama Petugas' },
-    { name: 'breederName', label: 'Nama Peternak' },
-    { name: 'breederAddress', label: 'Alamat Peternak' },
-    { name: 'phoneNumber', label: 'Nomor HP' },
-    { name: 'breederId', label: 'ID Peternak (KTP)' },
-    { name: 'cowType', label: 'Jenis Sapi Indukan' },
-    { name: 'cowId', label: 'ID Indukan (Eartag)' },
-    { name: 'strawType', label: 'Jenis Straw Pejantan' },
-    { name: 'strawId', label: 'ID Pejantan Straw' },
-    { name: 'strawBatchId', label: 'ID Batch Straw' },
-    { name: 'strawProducer', label: 'Produsen Straw' },
-  ];
+  const getVillageOptions = (puskeswan: string) => {
+    switch (puskeswan) {
+        case 'Puskeswan Topoyo': return topoyoVillages;
+        case 'Puskeswan Tobadak': return tobadakVillages;
+        case 'Puskeswan Pangale': return pangaleVillages;
+        case 'Puskeswan Budong-Budong': return budongBudongVillages;
+        case 'Puskeswan Karossa': return karossaVillages;
+        default: return [];
+    }
+  };
+
+  const getStaffOptions = (puskeswan: string) => {
+    switch (puskeswan) {
+      case 'Puskeswan Budong-Budong': return budongBudongStaff;
+      case 'Puskeswan Karossa': return karossaStaff;
+      case 'Puskeswan Pangale': return pangaleStaff;
+      case 'Puskeswan Tobadak': return tobadakStaff;
+      case 'Puskeswan Topoyo': return topoyoStaff;
+      default: return [];
+    }
+  };
+
+  const villageOptions = getVillageOptions(watchPuskeswan);
+  const staffOptions = getStaffOptions(watchPuskeswan);
+
+  const showVillageDropdown = !!watchPuskeswan;
+  const isOtherAddress = showVillageDropdown && (watchBreederAddress === 'Lainnya' || (!villageOptions.includes(watchBreederAddress) && watchBreederAddress !== ''));
+  
+  const showStaffDropdown = !!watchPuskeswan;
+  const isOtherStaff = showStaffDropdown && (watchStaffName === 'Lainnya' || (!staffOptions.includes(watchStaffName) && watchStaffName !== ''));
+  
+  const isOtherCowType = watchCowType === 'Lainnya' || (!commonSapiOptions.includes(watchCowType) && watchCowType !== '');
+  const isOtherStrawType = watchStrawType === 'Lainnya' || (!commonSapiOptions.includes(watchStrawType) && watchStrawType !== '');
+  const isOtherStrawProducer = watchStrawProducer === 'Lainnya' || (!producerOptions.includes(watchStrawProducer) && watchStrawProducer !== '');
 
   return (
     <div className="space-y-6">
@@ -617,7 +687,7 @@ export function RecordsTable() {
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleUpdate)} className="space-y-4 max-h-[60vh] overflow-y-auto p-1 pr-4">
+              <form onSubmit={form.handleSubmit(handleUpdate)} className="space-y-4 max-h-[70vh] overflow-y-auto p-1 pr-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
@@ -643,7 +713,11 @@ export function RecordsTable() {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Puskeswan</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={(val) => {
+                                  field.onChange(val);
+                                  form.setValue('staffName', '');
+                                  form.setValue('breederAddress', '');
+                                }} value={field.value}>
                                     <FormControl>
                                         <SelectTrigger aria-label="Pilih Puskeswan">
                                             <SelectValue placeholder="Pilih Puskeswan" />
@@ -661,26 +735,271 @@ export function RecordsTable() {
                             </FormItem>
                         )}
                     />
-                    {formFields.map((formField) => (
-                      <FormField
-                        key={formField.name}
-                        control={form.control}
-                        name={formField.name}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{formField.label}</FormLabel>
+
+                    <FormField
+                      control={form.control}
+                      name="staffName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nama Petugas</FormLabel>
+                          {showStaffDropdown ? (
+                            <>
+                              <Select onValueChange={field.onChange} value={staffOptions.includes(field.value) ? field.value : (field.value === '' ? '' : 'Lainnya')}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Pilih Petugas" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {staffOptions.map((staff) => (
+                                    <SelectItem key={staff} value={staff}>{staff}</SelectItem>
+                                  ))}
+                                  <SelectItem value="Lainnya">Lainnya</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {isOtherStaff && (
+                                <FormControl className="mt-2">
+                                  <Input 
+                                    placeholder="Masukkan nama petugas" 
+                                    value={field.value === 'Lainnya' ? '' : field.value}
+                                    onChange={(e) => field.onChange(e.target.value)} 
+                                  />
+                                </FormControl>
+                              )}
+                            </>
+                          ) : (
                             <FormControl>
-                              <Input 
-                                  placeholder={`Masukkan ${formField.label.toLowerCase()}`} 
-                                  {...field} 
-                                  value={field.value || ''}
-                                />
+                              <Input placeholder="Masukkan nama petugas" {...field} />
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    ))}
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="breederAddress"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Alamat Peternak</FormLabel>
+                          {showVillageDropdown ? (
+                            <>
+                              <Select onValueChange={field.onChange} value={villageOptions.includes(field.value) ? field.value : (field.value === '' ? '' : 'Lainnya')}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Pilih Desa" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {villageOptions.map((village) => (
+                                    <SelectItem key={village} value={village}>{village}</SelectItem>
+                                  ))}
+                                  <SelectItem value="Lainnya">Lainnya</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {isOtherAddress && (
+                                <FormControl className="mt-2">
+                                  <Input 
+                                    placeholder="Masukkan alamat lengkap" 
+                                    value={field.value === 'Lainnya' ? '' : field.value}
+                                    onChange={(e) => field.onChange(e.target.value)} 
+                                  />
+                                </FormControl>
+                              )}
+                            </>
+                          ) : (
+                            <FormControl>
+                              <Input placeholder="Masukkan alamat lengkap" {...field} />
+                            </FormControl>
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="breederName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nama Peternak</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Masukkan nama peternak" {...field} value={field.value || ''} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="phoneNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nomor HP</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Masukkan nomor HP" {...field} value={field.value || ''} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="breederId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ID Peternak (KTP)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Masukkan ID peternak (16 digit)" {...field} value={field.value || ''} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="cowType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Jenis Sapi Indukan</FormLabel>
+                          <Select onValueChange={field.onChange} value={commonSapiOptions.includes(field.value) ? field.value : (field.value === '' ? '' : 'Lainnya')}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih Jenis Sapi" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {commonSapiOptions.map((type) => (
+                                <SelectItem key={type} value={type}>{type}</SelectItem>
+                              ))}
+                              <SelectItem value="Lainnya">Lainnya</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {isOtherCowType && (
+                            <FormControl className="mt-2">
+                              <Input
+                                placeholder="Masukkan jenis sapi"
+                                value={field.value === 'Lainnya' ? '' : field.value}
+                                onChange={(e) => field.onChange(e.target.value)}
+                              />
+                            </FormControl>
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="cowId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ID Indukan (Eartag)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Masukkan ID eartag" {...field} value={field.value || ''} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="strawType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Jenis Straw Pejantan</FormLabel>
+                          <Select onValueChange={field.onChange} value={commonSapiOptions.includes(field.value) ? field.value : (field.value === '' ? '' : 'Lainnya')}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih Jenis Straw" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {commonSapiOptions.map((type) => (
+                                <SelectItem key={type} value={type}>{type}</SelectItem>
+                              ))}
+                              <SelectItem value="Lainnya">Lainnya</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {isOtherStrawType && (
+                            <FormControl className="mt-2">
+                              <Input
+                                placeholder="Masukkan jenis straw"
+                                value={field.value === 'Lainnya' ? '' : field.value}
+                                onChange={(e) => field.onChange(e.target.value)}
+                              />
+                            </FormControl>
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="strawId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ID Pejantan Straw</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Masukkan ID pejantan" {...field} value={field.value || ''} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="strawBatchId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ID Batch Straw</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Masukkan ID batch" {...field} value={field.value || ''} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="strawProducer"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Produsen Straw</FormLabel>
+                          <Select onValueChange={field.onChange} value={producerOptions.includes(field.value) ? field.value : (field.value === '' ? '' : 'Lainnya')}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih Produsen" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {producerOptions.map((producer) => (
+                                <SelectItem key={producer} value={producer}>{producer}</SelectItem>
+                              ))}
+                              <SelectItem value="Lainnya">Lainnya</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {isOtherStrawProducer && (
+                            <FormControl className="mt-2">
+                              <Input
+                                placeholder="Masukkan produsen straw"
+                                value={field.value === 'Lainnya' ? '' : field.value}
+                                onChange={(e) => field.onChange(e.target.value)}
+                              />
+                            </FormControl>
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                 </div>
                 <DialogFooter className="pt-4">
                   <DialogClose asChild>
