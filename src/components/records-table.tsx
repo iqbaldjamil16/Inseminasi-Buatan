@@ -289,6 +289,12 @@ export function RecordsTable() {
             Lihat, cari, ekspor, dan analisis semua data inseminasi yang telah tercatat.
           </CardDescription>
         </CardHeader>
+        <CardFooter className="flex justify-end pt-0">
+          <Button onClick={exportToCSV} disabled={isLoading || filteredData.length === 0} className="w-full sm:w-auto">
+            <Download className="mr-2 h-4 w-4" />
+            Unduh Laporan
+          </Button>
+        </CardFooter>
       </Card>
       
       <Card>
@@ -331,8 +337,8 @@ export function RecordsTable() {
               </div>
             </div>
 
-            {/* View Switcher & Actions Row */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            {/* View Switcher Row */}
+            <div className="flex flex-col sm:flex-row justify-start items-center gap-4">
               <div className="flex items-center bg-muted p-1 rounded-lg w-full sm:w-auto">
                 <Button 
                   variant={view === 'table' ? 'secondary' : 'ghost'} 
@@ -353,12 +359,6 @@ export function RecordsTable() {
                   Statistik
                 </Button>
               </div>
-              {view === 'table' && (
-                <Button onClick={exportToCSV} disabled={isLoading || filteredData.length === 0} className="w-full sm:w-auto">
-                  <Download className="mr-2 h-4 w-4" />
-                  Unduh Laporan
-                </Button>
-              )}
             </div>
 
             {/* Content Area */}
