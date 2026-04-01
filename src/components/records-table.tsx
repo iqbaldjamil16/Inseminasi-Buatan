@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
@@ -63,6 +64,7 @@ import { collection, doc } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { StatisticsView } from './statistics-view';
+import * as XLSX from 'xlsx';
 
 // Master Data Definitions (Synced with InseminationForm)
 const topoyoVillages = [
@@ -152,7 +154,6 @@ export function RecordsTable() {
     resolver: zodResolver(InseminationRecordSchema),
   });
 
-  // Dynamic staff options for the filter card
   const staffFilterOptions = useMemo(() => {
     const staffMap: Record<string, string[]> = {
       'Puskeswan Budong-Budong': budongBudongStaff,
@@ -173,7 +174,6 @@ export function RecordsTable() {
     return staffMap[selectedPuskeswan] || [];
   }, [selectedPuskeswan, parsedRecords]);
 
-  // Reset staff filter if current selection is not available in new puskeswan
   useEffect(() => {
     if (selectedPuskeswan !== 'all' && selectedStaff !== 'all') {
       if (!staffFilterOptions.includes(selectedStaff)) {
@@ -275,20 +275,7 @@ export function RecordsTable() {
   const exportToExcel = () => {
     if (filteredData.length === 0) return;
 
-    const headers = [
-        'Tanggal IB', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
-        'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
-    ];
-
-    const escapeXml = (unsafe: any) => {
-        if (unsafe === null || unsafe === undefined) return '';
-        return String(unsafe)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&apos;');
-    };
+    const wb = XLSX.utils.book_new();
 
     const groups: Record<string, InseminationRecord[]> = {};
     if (selectedStaff !== 'all') {
@@ -302,112 +289,45 @@ export function RecordsTable() {
       });
     }
 
-    let xml = `<?xml version="1.0"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:html="http://www.w3.org/TR/REC-html40">
- <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
-  <Author>IB-Pro</Author>
-  <Created>${new Date().toISOString()}</Created>
- </DocumentProperties>
- <Styles>
-  <Style ss:ID="Default" ss:Name="Normal">
-   <Alignment ss:Vertical="Bottom"/>
-   <Borders/>
-   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000"/>
-   <Interior/>
-   <NumberFormat/>
-   <Protection/>
-  </Style>
-  <Style ss:ID="Header">
-   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-   <Borders>
-    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
-    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
-    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
-    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
-   </Borders>
-   <Font ss:Bold="1" ss:Size="11"/>
-   <Interior ss:Color="#D9EAD3" ss:Pattern="Solid"/>
-  </Style>
-  <Style ss:ID="DataCell">
-   <Borders>
-    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
-    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
-    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
-    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
-   </Borders>
-  </Style>
-  <Style ss:ID="StaffNameStyle">
-   <Font ss:Bold="1" ss:Size="12"/>
-  </Style>
- </Styles>`;
-
     Object.entries(groups).forEach(([staffName, records]) => {
-      const sheetName = escapeXml(staffName.substring(0, 31).replace(/[:\\\?\*\[\]\/]/g, ''));
-      
-      xml += `\n <Worksheet ss:Name="${sheetName}">
-  <Table>
-   <Column ss:Width="80"/>
-   <Column ss:Width="120"/>
-   <Column ss:Width="120"/>
-   <Column ss:Width="150"/>
-   <Column ss:Width="100"/>
-   <Column ss:Width="120"/>
-   <Column ss:Width="100"/>
-   <Column ss:Width="100"/>
-   <Column ss:Width="100"/>
-   <Column ss:Width="100"/>
-   <Column ss:Width="100"/>
-   <Column ss:Width="100"/>
-   
-   <Row ss:Height="15"></Row>
-   <Row ss:Height="15"></Row>
-   <Row ss:Height="20">
-    <Cell ss:StyleID="StaffNameStyle"><Data ss:Type="String">${escapeXml(staffName)}</Data></Cell>
-   </Row>
-   <Row ss:Height="20">
-    ${headers.map(h => `<Cell ss:StyleID="Header"><Data ss:Type="String">${escapeXml(h)}</Data></Cell>`).join('')}
-   </Row>`;
+      const headers = [
+          'Tanggal IB', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
+          'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
+      ];
 
-      records.forEach(record => {
-        const rowData = [
-          record.inseminationDate ? format(new Date(record.inseminationDate), 'yyyy-MM-dd') : '',
-          record.puskeswan,
-          record.breederName,
-          record.breederAddress,
-          record.phoneNumber,
-          record.breederId,
-          record.cowType,
-          record.cowId,
-          record.strawType,
-          record.strawId,
-          record.strawBatchId,
-          record.strawProducer,
-        ];
+      const dataRows = records.map(record => [
+        record.inseminationDate ? format(new Date(record.inseminationDate), 'yyyy-MM-dd') : '',
+        record.puskeswan,
+        record.breederName,
+        record.breederAddress,
+        record.phoneNumber,
+        record.breederId,
+        record.cowType,
+        record.cowId,
+        record.strawType,
+        record.strawId,
+        record.strawBatchId,
+        record.strawProducer,
+      ]);
 
-        xml += `\n   <Row ss:Height="15">
-    ${rowData.map(val => `<Cell ss:StyleID="DataCell"><Data ss:Type="String">${escapeXml(val)}</Data></Cell>`).join('')}
-   </Row>`;
-      });
+      const wsData = [
+        [], // Row 1
+        [], // Row 2
+        [staffName], // Row 3
+        headers, // Row 4
+        ...dataRows // Row 5 onwards
+      ];
 
-      xml += `\n  </Table>
- </Worksheet>`;
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+      // Set column widths
+      const wscols = headers.map(() => ({ wch: 15 }));
+      ws['!cols'] = wscols;
+
+      XLSX.utils.book_append_sheet(wb, ws, staffName.substring(0, 31));
     });
 
-    xml += `\n</Workbook>`;
-
-    const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `Laporan_IB_${new Date().toISOString().split('T')[0]}.xls`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    XLSX.writeFile(wb, `Laporan_IB_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const RecordDetailRow = ({ label, value }: { label: string, value: string | number | undefined }) => (
@@ -485,6 +405,12 @@ export function RecordsTable() {
             Lihat, cari, ekspor, dan analisis semua data inseminasi yang telah tercatat.
           </CardDescription>
         </CardHeader>
+        <CardFooter className="flex justify-end">
+          <Button onClick={exportToExcel} disabled={isLoading || filteredData.length === 0} className="w-full sm:w-auto">
+            <Download className="mr-2 h-4 w-4" />
+            Unduh Laporan
+          </Button>
+        </CardFooter>
       </Card>
 
       <Card>
@@ -523,11 +449,6 @@ export function RecordsTable() {
                     </SelectContent>
                 </Select>
             </div>
-
-            <Button onClick={exportToExcel} disabled={isLoading || filteredData.length === 0} className="w-full mt-4">
-                <Download className="mr-2 h-4 w-4" />
-                Unduh Laporan
-            </Button>
         </CardContent>
       </Card>
       
