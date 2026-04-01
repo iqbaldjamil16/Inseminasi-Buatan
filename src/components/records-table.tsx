@@ -21,6 +21,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Download, Search, Trash2, FilePenLine, ChevronDown, Loader2, BarChart, Table as TableIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -68,6 +69,8 @@ export function RecordsTable() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
   const [selectedYear, setSelectedYear] = useState<string>('all');
+  const [selectedPuskeswan, setSelectedPuskeswan] = useState<string>('all');
+  const [selectedStaff, setSelectedStaff] = useState<string>('all');
   const [editingRecord, setEditingRecord] = useState<InseminationRecord | null>(null);
   const [deletingRecord, setDeletingRecord] = useState<InseminationRecord | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -155,6 +158,23 @@ export function RecordsTable() {
     { value: '9', label: 'Oktober' }, { value: '10', label: 'November' }, { value: '11', label: 'Desember' }
   ];
 
+  const puskeswanOptions = [
+    'Puskeswan Budong-Budong',
+    'Puskeswan Karossa',
+    'Puskeswan Pangale',
+    'Puskeswan Tobadak',
+    'Puskeswan Topoyo',
+  ];
+
+  const allStaff = useMemo(() => {
+    if (!parsedRecords) return [];
+    const staff = new Set<string>();
+    parsedRecords.forEach(record => {
+      if (record.staffName) staff.add(record.staffName);
+    });
+    return Array.from(staff).sort();
+  }, [parsedRecords]);
+
   const filteredData = useMemo(() => {
     if (!parsedRecords) return [];
 
@@ -164,6 +184,8 @@ export function RecordsTable() {
       const recordDate = record.inseminationDate;
       const isMonthMatch = selectedMonth === 'all' || recordDate.getMonth().toString() === selectedMonth;
       const isYearMatch = selectedYear === 'all' || recordDate.getFullYear().toString() === selectedYear;
+      const isPuskeswanMatch = selectedPuskeswan === 'all' || record.puskeswan === selectedPuskeswan;
+      const isStaffMatch = selectedStaff === 'all' || record.staffName === selectedStaff;
 
       const searchTermLower = searchTerm.toLowerCase();
       const isSearchMatch =
@@ -173,9 +195,9 @@ export function RecordsTable() {
         (record.cowId && record.cowId.toLowerCase().includes(searchTermLower)) ||
         (format(recordDate, 'dd/MM/yyyy').includes(searchTermLower));
 
-      return isMonthMatch && isYearMatch && isSearchMatch;
+      return isMonthMatch && isYearMatch && isPuskeswanMatch && isStaffMatch && isSearchMatch;
     });
-  }, [searchTerm, parsedRecords, selectedMonth, selectedYear]);
+  }, [searchTerm, parsedRecords, selectedMonth, selectedYear, selectedPuskeswan, selectedStaff]);
   
   const exportToCSV = () => {
     const headers = [
@@ -183,13 +205,11 @@ export function RecordsTable() {
         'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
     ];
     
-    // Function to safely quote values for CSV
     const escapeCsvValue = (value: any) => {
         if (value === null || value === undefined) {
             return '';
         }
         const stringValue = String(value);
-        // If the value contains a comma, double quote, or newline, wrap it in double quotes.
         if (/[",\n]/.test(stringValue)) {
             return `"${stringValue.replace(/"/g, '""')}"`;
         }
@@ -203,7 +223,7 @@ export function RecordsTable() {
         record.breederName,
         record.breederAddress,
         record.phoneNumber,
-        `'${record.breederId}`, // Prepending ' to force Excel to treat as text
+        `'${record.breederId}`, 
         record.cowType,
         record.cowId,
         record.strawType,
@@ -214,7 +234,6 @@ export function RecordsTable() {
     
     let csvContent = headers.join(',') + '\n' + rows.join('\n');
 
-    // Add BOM for Excel compatibility
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -257,14 +276,6 @@ export function RecordsTable() {
     </div>
   );
 
-  const puskeswanOptions = [
-    'Puskeswan Budong-Budong',
-    'Puskeswan Karossa',
-    'Puskeswan Pangale',
-    'Puskeswan Tobadak',
-    'Puskeswan Topoyo',
-  ];
-
   const formFields: { name: keyof InseminationRecord; label: string }[] = [
     { name: 'staffName', label: 'Nama Petugas' },
     { name: 'breederName', label: 'Nama Peternak' },
@@ -288,12 +299,49 @@ export function RecordsTable() {
             Lihat, cari, ekspor, dan analisis semua data inseminasi yang telah tercatat.
           </CardDescription>
         </CardHeader>
-        <CardFooter className="flex justify-end pt-0">
-          <Button onClick={exportToCSV} disabled={isLoading || filteredData.length === 0} className="w-full sm:w-auto">
-            <Download className="mr-2 h-4 w-4" />
-            Unduh Laporan
-          </Button>
-        </CardFooter>
+      </Card>
+
+      {/* New Filter Card */}
+      <Card>
+        <CardHeader>
+            <CardTitle className="text-lg">Filter Data</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+            <div className="space-y-2">
+                <Label htmlFor="filter-puskeswan">Puskeswan</Label>
+                <Select onValueChange={setSelectedPuskeswan} value={selectedPuskeswan}>
+                    <SelectTrigger id="filter-puskeswan">
+                        <SelectValue placeholder="Semua Puskeswan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Semua Puskeswan</SelectItem>
+                        {puskeswanOptions.map(option => (
+                            <SelectItem key={option} value={option}>{option}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            
+            <div className="space-y-2">
+                <Label htmlFor="filter-staff">Nama Petugas</Label>
+                <Select onValueChange={setSelectedStaff} value={selectedStaff}>
+                    <SelectTrigger id="filter-staff">
+                        <SelectValue placeholder="Semua Petugas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Semua Petugas</SelectItem>
+                        {allStaff.map(staff => (
+                            <SelectItem key={staff} value={staff}>{staff}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <Button onClick={exportToCSV} disabled={isLoading || filteredData.length === 0} className="w-full mt-4">
+                <Download className="mr-2 h-4 w-4" />
+                Unduh Laporan
+            </Button>
+        </CardContent>
       </Card>
       
       <Card>
@@ -303,7 +351,7 @@ export function RecordsTable() {
             <div className="flex flex-col sm:flex-row items-center gap-2">
               <div className="grid grid-cols-2 gap-2 w-full sm:flex-1">
                 <Select onValueChange={setSelectedMonth} value={selectedMonth}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Pilih Bulan">
                     <SelectValue placeholder="Pilih Bulan" />
                   </SelectTrigger>
                   <SelectContent>
@@ -314,7 +362,7 @@ export function RecordsTable() {
                   </SelectContent>
                 </Select>
                 <Select onValueChange={setSelectedYear} value={selectedYear}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Pilih Tahun">
                     <SelectValue placeholder="Pilih Tahun" />
                   </SelectTrigger>
                   <SelectContent>
@@ -508,7 +556,7 @@ export function RecordsTable() {
                                 <FormLabel>Puskeswan</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
-                                        <SelectTrigger>
+                                        <SelectTrigger aria-label="Pilih Puskeswan">
                                             <SelectValue placeholder="Pilih Puskeswan" />
                                         </SelectTrigger>
                                     </FormControl>
