@@ -351,7 +351,7 @@ export function RecordsTable() {
   const TableSkeleton = () => (
      <div className="space-y-2">
       {[...Array(5)].map((_, i) => (
-        <Skeleton className="h-12 w-full" />
+        <Skeleton key={i} className="h-12 w-full" />
       ))}
     </div>
   );
