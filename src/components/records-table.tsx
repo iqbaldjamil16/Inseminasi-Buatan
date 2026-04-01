@@ -199,46 +199,99 @@ export function RecordsTable() {
     });
   }, [searchTerm, parsedRecords, selectedMonth, selectedYear, selectedPuskeswan, selectedStaff]);
   
-  const exportToCSV = () => {
+  const exportToExcel = () => {
+    if (filteredData.length === 0) return;
+
     const headers = [
         'Tanggal IB', 'Nama Petugas', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
         'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
     ];
-    
-    const escapeCsvValue = (value: any) => {
-        if (value === null || value === undefined) {
-            return '';
-        }
-        const stringValue = String(value);
-        if (/[",\n]/.test(stringValue)) {
-            return `"${stringValue.replace(/"/g, '""')}"`;
-        }
-        return stringValue;
+
+    const escapeXml = (unsafe: any) => {
+        if (unsafe === null || unsafe === undefined) return '';
+        return String(unsafe)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&apos;');
     };
 
-    const rows = filteredData.map(record => [
-        record.inseminationDate ? format(new Date(record.inseminationDate), 'yyyy-MM-dd') : '',
-        record.staffName,
-        record.puskeswan,
-        record.breederName,
-        record.breederAddress,
-        record.phoneNumber,
-        `'${record.breederId}`, 
-        record.cowType,
-        record.cowId,
-        record.strawType,
-        record.strawId,
-        record.strawBatchId,
-        record.strawProducer,
-    ].map(escapeCsvValue).join(','));
-    
-    let csvContent = headers.join(',') + '\n' + rows.join('\n');
+    // Grouping data by staff for sheets if "Semua Petugas" is selected
+    const groups: Record<string, InseminationRecord[]> = {};
+    if (selectedStaff !== 'all') {
+      const name = filteredData[0]?.staffName || 'Laporan';
+      groups[name] = filteredData;
+    } else {
+      filteredData.forEach(r => {
+        const name = r.staffName || 'Lainnya';
+        if (!groups[name]) groups[name] = [];
+        groups[name].push(r);
+      });
+    }
 
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    // SpreadsheetML (XML Spreadsheet 2003) content
+    let xml = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Author>IB-Pro</Author>
+  <Created>${new Date().toISOString()}</Created>
+ </DocumentProperties>
+ <Styles>
+  <Style ss:ID="Header">
+   <Font ss:Bold="1"/>
+   <Interior ss:Color="#E1E1E1" ss:Pattern="Solid"/>
+  </Style>
+ </Styles>`;
+
+    Object.entries(groups).forEach(([staffName, records]) => {
+      // Clean sheet name (max 31 chars, no forbidden chars)
+      const sheetName = escapeXml(staffName.substring(0, 31).replace(/[:\\\?\*\[\]\/]/g, ''));
+      
+      xml += `\n <Worksheet ss:Name="${sheetName}">
+  <Table>
+   <Row ss:StyleID="Header">
+    ${headers.map(h => `<Cell><Data ss:Type="String">${escapeXml(h)}</Data></Cell>`).join('')}
+   </Row>`;
+
+      records.forEach(record => {
+        const rowData = [
+          record.inseminationDate ? format(new Date(record.inseminationDate), 'yyyy-MM-dd') : '',
+          record.staffName,
+          record.puskeswan,
+          record.breederName,
+          record.breederAddress,
+          record.phoneNumber,
+          record.breederId,
+          record.cowType,
+          record.cowId,
+          record.strawType,
+          record.strawId,
+          record.strawBatchId,
+          record.strawProducer,
+        ];
+
+        xml += `\n   <Row>
+    ${rowData.map(val => `<Cell><Data ss:Type="String">${escapeXml(val)}</Data></Cell>`).join('')}
+   </Row>`;
+      });
+
+      xml += `\n  </Table>
+ </Worksheet>`;
+    });
+
+    xml += `\n</Workbook>`;
+
+    const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `IB-Pro_Records_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `Laporan_IB_${new Date().toISOString().split('T')[0]}.xls`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -337,7 +390,7 @@ export function RecordsTable() {
                 </Select>
             </div>
 
-            <Button onClick={exportToCSV} disabled={isLoading || filteredData.length === 0} className="w-full mt-4">
+            <Button onClick={exportToExcel} disabled={isLoading || filteredData.length === 0} className="w-full mt-4">
                 <Download className="mr-2 h-4 w-4" />
                 Unduh Laporan
             </Button>
