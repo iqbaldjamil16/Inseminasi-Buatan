@@ -393,7 +393,7 @@ export function RecordsTable() {
   const isOtherStaff = showStaffDropdown && (watchStaffName === 'Lainnya' || (!staffOptions.includes(watchStaffName) && watchStaffName !== ''));
   
   const isOtherCowType = watchCowType === 'Lainnya' || (!commonSapiOptions.includes(watchCowType) && watchCowType !== '');
-  const isOtherStrawType = watchStrawType === 'Lainnya' || (!commonSapiOptions.includes(watchStrawType) && watchStrawType !== '');
+  const isOtherStrawType = watchStrawType === 'Lainnya' || (!commonSapiOptions.includes(watchCowType) && watchCowType !== '');
   const isOtherStrawProducer = watchStrawProducer === 'Lainnya' || (!producerOptions.includes(watchStrawProducer) && watchStrawProducer !== '');
 
   return (
@@ -405,12 +405,6 @@ export function RecordsTable() {
             Lihat, cari, ekspor, dan analisis semua data inseminasi yang telah tercatat.
           </CardDescription>
         </CardHeader>
-        <CardFooter className="flex justify-end">
-          <Button onClick={exportToExcel} disabled={isLoading || filteredData.length === 0} className="w-full sm:w-auto">
-            <Download className="mr-2 h-4 w-4" />
-            Unduh Laporan
-          </Button>
-        </CardFooter>
       </Card>
 
       <Card>
@@ -449,6 +443,11 @@ export function RecordsTable() {
                     </SelectContent>
                 </Select>
             </div>
+
+            <Button onClick={exportToExcel} disabled={isLoading || filteredData.length === 0} className="w-full">
+                <Download className="mr-2 h-4 w-4" />
+                Unduh Laporan
+            </Button>
         </CardContent>
       </Card>
       
