@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useMemo, useEffect, type ReactNode } from 'react';
@@ -132,113 +133,6 @@ const sampleData = [
     strawBatchId: 'B05-SMTL',
     strawProducer: 'BIB Singosari',
   },
-  // --- Puskeswan Budong-Budong ---
-  {
-    inseminationDate: new Date('2024-06-12'),
-    staffName: 'Anshari Saleh',
-    puskeswan: 'Puskeswan Budong-Budong',
-    breederName: 'Indah Jaya',
-    breederAddress: 'Desa Barakkang',
-    phoneNumber: '084567890123',
-    breederId: '4567890123456789',
-    cowType: 'Sapi Bali',
-    cowId: 'BDB-001',
-    strawType: 'Sapi Limosin',
-    strawId: 'LMSN-01',
-    strawBatchId: 'B01-LMSN',
-    strawProducer: 'BIB Lembang',
-  },
-    {
-    inseminationDate: new Date('2024-07-15'),
-    staffName: 'Hadi',
-    puskeswan: 'Puskeswan Budong-Budong',
-    breederName: 'Joko Farm',
-    breederAddress: 'Desa Salogatta',
-    phoneNumber: '084567890124',
-    breederId: '4567890123456780',
-    cowType: 'Sapi Brahman',
-    cowId: 'BDB-002',
-    strawType: 'Sapi Brahman',
-    strawId: 'BRMN-04',
-    strawBatchId: 'B04-BRMN',
-    strawProducer: 'BIB Maros',
-  },
-  // --- Puskeswan Tobadak ---
-  {
-    inseminationDate: new Date('2024-07-20'),
-    staffName: 'drh. Ishak',
-    puskeswan: 'Puskeswan Tobadak',
-    breederName: 'Karya Mandiri',
-    breederAddress: 'Desa Tobadak',
-    phoneNumber: '085678901234',
-    breederId: '5678901234567890',
-    cowType: 'Sapi Angus',
-    cowId: 'TBD-001',
-    strawType: 'Sapi Angus',
-    strawId: 'ANGS-03',
-    strawBatchId: 'B03-ANGS',
-    strawProducer: 'BIB Singosari',
-  },
-  {
-    inseminationDate: new Date('2024-08-01'),
-    staffName: 'Endang',
-    puskeswan: 'Puskeswan Tobadak',
-    breederName: 'Lestari Ternak',
-    breederAddress: 'Desa Batu Parigi',
-    phoneNumber: '085678901235',
-    breederId: '5678901234567891',
-    cowType: 'Sapi Limosin',
-    cowId: 'TBD-002',
-    strawType: 'Sapi Limosin',
-    strawId: 'LMSN-06',
-    strawBatchId: 'B06-LMSN',
-    strawProducer: 'BIB Lembang',
-  },
-    {
-    inseminationDate: new Date('2024-08-05'),
-    staffName: 'drh. Iqbal Djamil',
-    puskeswan: 'Puskeswan Topoyo',
-    breederName: 'Maju Bersama',
-    breederAddress: 'Desa Tumbu',
-    phoneNumber: '081234567893',
-    breederId: '1234567890123459',
-    cowType: 'Sapi Simental',
-    cowId: 'TPY-004',
-    strawType: 'Sapi Angus',
-    strawId: 'ANGS-03',
-    strawBatchId: 'B03-ANGS',
-    strawProducer: 'BIB Maros',
-  },
-  {
-    inseminationDate: new Date('2024-08-10'),
-    staffName: 'drh. Stephani',
-    puskeswan: 'Puskeswan Karossa',
-    breederName: 'Nurul Huda Farm',
-    breederAddress: 'Desa Sukamaju',
-    phoneNumber: '082345678904',
-    breederId: '2345678901234570',
-    cowType: 'Sapi Donggala',
-    cowId: 'KRS-004',
-    strawType: 'Sapi Brahman',
-    strawId: 'BRMN-04',
-    strawBatchId: 'B04-BRMN',
-    strawProducer: 'BIB Singosari',
-  },
-  {
-    inseminationDate: new Date('2024-08-12'),
-    staffName: 'drh. Ketut Elok',
-    puskeswan: 'Puskeswan Pangale',
-    breederName: 'Pandu Group',
-    breederAddress: 'Desa Polo Camba',
-    phoneNumber: '083456789014',
-    breederId: '3456789012345680',
-    cowType: 'Sapi Bali',
-    cowId: 'PGL-003',
-    strawType: 'Sapi Limosin',
-    strawId: 'LMSN-01',
-    strawBatchId: 'B01-LMSN',
-    strawProducer: 'BIB Lembang',
-  },
 ];
 
 
@@ -248,27 +142,23 @@ interface FirebaseClientProviderProps {
 
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
   const firebaseServices = useMemo(() => {
-    // Initialize Firebase on the client side, once per component mount.
     return initializeFirebase();
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, []);
 
   useEffect(() => {
     if (firebaseServices.auth) {
       const auth = firebaseServices.auth as Auth;
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         if (!user) {
-          // If no user is logged in, sign in anonymously.
           signInAnonymously(auth).catch((error) => {
             console.error('Anonymous sign-in failed:', error);
           });
         }
       });
-      // Clean up the subscription on unmount
       return () => unsubscribe();
     }
   }, [firebaseServices.auth]);
 
-  // useEffect to seed the database with sample data if it's empty
   useEffect(() => {
     const seedDatabase = async () => {
       if (!firebaseServices.firestore) return;
@@ -281,7 +171,7 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
           console.log('inseminationRecords collection is empty. Seeding data...');
           const batch = writeBatch(db);
           sampleData.forEach((record) => {
-            const docRef = doc(collection(db, 'inseminationRecords')); // Create a new doc with a random ID
+            const docRef = doc(collection(db, 'inseminationRecords'));
             batch.set(docRef, { ...record, createdAt: serverTimestamp() });
           });
           await batch.commit();
@@ -293,7 +183,6 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
     };
 
     if (firebaseServices.firestore) {
-        // A one-time flag to ensure seeding only happens once per session, not on every HMR.
         if (!(window as any).__hasSeeded) {
             seedDatabase();
             (window as any).__hasSeeded = true;
