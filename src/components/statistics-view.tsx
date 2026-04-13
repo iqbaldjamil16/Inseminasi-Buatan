@@ -125,6 +125,31 @@ export function StatisticsView({ records }: StatisticsViewProps) {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
   }, [records]);
+
+  const strawTypeStats = useMemo(() => {
+    if (!records || records.length === 0) return [];
+    const stats: { [key: string]: number } = {};
+    records.forEach((record) => {
+      if (record.strawType) {
+        stats[record.strawType] = (stats[record.strawType] || 0) + 1;
+      }
+    });
+    return Object.entries(stats)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [records]);
+
+  const strawByPuskeswanStats = useMemo(() => {
+    if (!records || records.length === 0) return {};
+    const stats: Record<string, Record<string, number>> = {};
+    records.forEach((record) => {
+      if (record.puskeswan && record.strawType) {
+        if (!stats[record.puskeswan]) stats[record.puskeswan] = {};
+        stats[record.puskeswan][record.strawType] = (stats[record.puskeswan][record.strawType] || 0) + 1;
+      }
+    });
+    return stats;
+  }, [records]);
   
   const puskeswanChartConfig = useMemo(() => {
     const config: ChartConfig = {};
@@ -177,7 +202,35 @@ export function StatisticsView({ records }: StatisticsViewProps) {
             <MamujuTengahMap data={puskeswanStats} total={totalRecords} />
           </CardContent>
         </Card>
+
         <CustomBarChart data={sortedMonthlyStats} total={totalRecords} title="Statistik Bulanan" description="Total data inseminasi yang diinput setiap bulan." />
+        
+        <CustomBarChart data={strawTypeStats} total={totalRecords} title="Statistik Jenis Straw Pejantan" description="Distribusi penggunaan jenis straw pejantan secara keseluruhan." />
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Jenis Straw per Puskeswan</CardTitle>
+            <CardDescription>Detail penggunaan jenis straw di tiap-tiap Puskeswan.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(strawByPuskeswanStats).map(([puskeswan, types]) => (
+              <Card key={puskeswan} className="bg-muted/30">
+                <CardHeader className="p-4">
+                  <CardTitle className="text-base font-bold text-primary">{puskeswan}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0 space-y-2">
+                  {Object.entries(types).sort((a,b) => b[1] - a[1]).map(([type, count]) => (
+                    <div key={type} className="flex justify-between items-center text-sm border-b border-muted last:border-0 pb-1">
+                      <span className="text-muted-foreground">{type}</span>
+                      <span className="font-semibold">{count}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            ))}
+          </CardContent>
+        </Card>
+
         <CustomBarChart data={staffStats} total={totalRecords} title="Statistik per Petugas" description="Total data yang diinput oleh masing-masing petugas." />
         
         <Card>
