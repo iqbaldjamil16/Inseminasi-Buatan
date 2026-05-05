@@ -1,12 +1,11 @@
 
 'use client';
 
-import React, { useMemo, useEffect, type ReactNode } from 'react';
+import React, { useMemo, useEffect, useState, type ReactNode } from 'react';
 import { FirebaseProvider } from '@/firebase/provider';
 import { initializeFirebase } from '@/firebase';
-import { onAuthStateChanged, signInAnonymously, type Auth } from 'firebase/auth';
+import { onAuthStateChanged, signInAnonymously, type Auth, type User } from 'firebase/auth';
 import { getFirestore, collection, getDocs, writeBatch, serverTimestamp, doc } from 'firebase/firestore';
-
 
 // Sample data to seed the database
 const sampleData = [
@@ -135,12 +134,14 @@ const sampleData = [
   },
 ];
 
-
 interface FirebaseClientProviderProps {
   children: ReactNode;
 }
 
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
+
   const firebaseServices = useMemo(() => {
     return initializeFirebase();
   }, []);
@@ -149,6 +150,8 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
     if (firebaseServices.auth) {
       const auth = firebaseServices.auth as Auth;
       const unsubscribe = onAuthStateChanged(auth, (user) => {
+        setCurrentUser(user);
+        setIsAuthReady(true);
         if (!user) {
           signInAnonymously(auth).catch((error) => {
             console.error('Anonymous sign-in failed:', error);
@@ -161,7 +164,9 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
 
   useEffect(() => {
     const seedDatabase = async () => {
-      if (!firebaseServices.firestore) return;
+      // Tunggu hingga user terautentikasi sebelum mencoba baca/tulis Firestore
+      if (!firebaseServices.firestore || !currentUser) return;
+      
       const db = firebaseServices.firestore;
       const recordsCollectionRef = collection(db, 'inseminationRecords');
 
@@ -178,17 +183,18 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
           console.log('Sample data seeded successfully.');
         }
       } catch (error) {
+        // Abaikan error seeding jika disebabkan oleh aturan keamanan selama transisi auth
         console.error('Error seeding database:', error);
       }
     };
 
-    if (firebaseServices.firestore) {
+    if (isAuthReady && firebaseServices.firestore && currentUser) {
         if (!(window as any).__hasSeeded) {
             seedDatabase();
             (window as any).__hasSeeded = true;
         }
     }
-  }, [firebaseServices.firestore]);
+  }, [isAuthReady, firebaseServices.firestore, currentUser]);
 
   return (
     <FirebaseProvider
