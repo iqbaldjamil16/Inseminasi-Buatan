@@ -94,7 +94,7 @@ export function InseminationForm() {
 
   const karossaVillages = [
     'Desa Benggaulu', 'Desa Kadaila', 'Desa Karossa', 'Desa Kayucalla', 'Desa Lara',
-    'Desah Lembah Hopo', 'Desa Salubiro', 'Desa Sanjango', 'Desa Sukamaju', 
+    'Desa Lembah Hopo', 'Desa Salubiro', 'Desa Sanjango', 'Desa Sukamaju', 
     'Desa Tasoskko', 'Desa Kambunong', 'Mora IV', 'UPT Lara III'
   ].sort();
   
@@ -593,7 +593,7 @@ export function InseminationForm() {
             />
           </Card>
         </div>
-        <CardFooter className="flex flex-col items-end gap-4 px-0 pt-6">
+        <CardFooter className="flex flex-col items-start md:items-end gap-4 px-0 pt-6">
           <Button type="submit" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Simpan Data
