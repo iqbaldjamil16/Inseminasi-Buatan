@@ -291,7 +291,7 @@ export function InseminationForm() {
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border border-black"
+                className="h-8 w-8 text-black hover:bg-black/10"
                 onClick={handleCopyLink}
               >
                 <Copy className="h-4 w-4" />
