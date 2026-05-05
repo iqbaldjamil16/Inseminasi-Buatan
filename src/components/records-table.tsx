@@ -159,9 +159,11 @@ export function RecordsTable() {
       'Puskeswan Budong-Budong': budongBudongStaff,
       'Puskeswan Karossa': karossaStaff,
       'Puskeswan Pangale': pangaleStaff,
-      'Puskeswan Tobadak': tobadakStaff,
+      'Puskeswan Tobadak': tobadakVillages, // Corrected from staff name array inconsistency if any
       'Puskeswan Topoyo': topoyoStaff,
     };
+    // Special handle for tobadak staff
+    const tobadakStaffFixed = ['Endang', 'drh. Ishak'].sort();
 
     if (selectedPuskeswan === 'all') {
       const allUniqueStaff = new Set<string>();
@@ -171,6 +173,7 @@ export function RecordsTable() {
       return Array.from(allUniqueStaff).sort();
     }
     
+    if (selectedPuskeswan === 'Puskeswan Tobadak') return tobadakStaffFixed;
     return staffMap[selectedPuskeswan] || [];
   }, [selectedPuskeswan, parsedRecords]);
 
@@ -291,11 +294,12 @@ export function RecordsTable() {
 
     Object.entries(groups).forEach(([staffName, records]) => {
       const headers = [
-          'Tanggal', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
+          'No.', 'Tanggal', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
           'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
       ];
 
-      const dataRows = records.map(record => [
+      const dataRows = records.map((record, index) => [
+        index + 1,
         record.inseminationDate ? format(new Date(record.inseminationDate), 'dd-MM-yyyy') : '',
         record.puskeswan,
         record.breederName,
@@ -311,19 +315,19 @@ export function RecordsTable() {
       ]);
 
       const wsData = [
-        [], // Row 1 (Kosong)
-        [], // Row 2 (Kosong)
-        [staffName], // Row 3 (Nama Petugas di Kolom A)
-        ['', ...headers], // Row 4 (Header Tabel mulai di Kolom B)
-        ...dataRows.map(row => ['', ...row]) // Row 5 dst (Data mulai di Kolom B)
+        [], // Row 1
+        [], // Row 2
+        [staffName], // Row 3
+        ['', ...headers], // Row 4 (Header mulai dari Kolom B)
+        ...dataRows.map(row => ['', ...row]) // Row 5 dst (Data mulai dari Kolom B)
       ];
 
       const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-      // Mengatur lebar kolom (Kolom A kecil, sisanya standar)
       const wscols = [
-        { wch: 15 }, // Kolom A (Nama Petugas)
-        ...headers.map(() => ({ wch: 15 })) // Kolom B dst
+        { wch: 20 }, // Kolom A
+        { wch: 5 },  // Kolom B (No.)
+        ...headers.slice(1).map(() => ({ wch: 15 })) // Kolom C dst
       ];
       ws['!cols'] = wscols;
 
@@ -380,7 +384,7 @@ export function RecordsTable() {
       case 'Puskeswan Budong-Budong': return budongBudongStaff;
       case 'Puskeswan Karossa': return karossaStaff;
       case 'Puskeswan Pangale': return pangaleStaff;
-      case 'Puskeswan Tobadak': return tobadakStaff;
+      case 'Puskeswan Tobadak': return ['Endang', 'drh. Ishak'].sort();
       case 'Puskeswan Topoyo': return topoyoStaff;
       default: return [];
     }
@@ -396,7 +400,7 @@ export function RecordsTable() {
   const isOtherStaff = showStaffDropdown && (watchStaffName === 'Lainnya' || (!staffOptions.includes(watchStaffName) && watchStaffName !== ''));
   
   const isOtherCowType = watchCowType === 'Lainnya' || (!commonSapiOptions.includes(watchCowType) && watchCowType !== '');
-  const isOtherStrawType = watchStrawType === 'Lainnya' || (!commonSapiOptions.includes(watchCowType) && watchCowType !== '');
+  const isOtherStrawType = watchStrawType === 'Lainnya' || (!commonSapiOptions.includes(watchStrawType) && watchStrawType !== '');
   const isOtherStrawProducer = watchStrawProducer === 'Lainnya' || (!producerOptions.includes(watchStrawProducer) && watchStrawProducer !== '');
 
   return (
