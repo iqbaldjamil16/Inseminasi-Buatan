@@ -93,7 +93,7 @@ const budongBudongVillages = [
 
 const karossaVillages = [
   'Desa Benggaulu', 'Desa Kadaila', 'Desa Karossa', 'Desa Kayucalla', 'Desa Lara',
-  'Desa Lembah Hopo', 'Desa Salubiro', 'Desa Sanjango', 'Desa Sukamaju', 
+  'Desah Lembah Hopo', 'Desa Salubiro', 'Desa Sanjango', 'Desa Sukamaju', 
   'Desa Tasoskko', 'Desa Kambunong', 'Mora IV', 'UPT Lara III'
 ].sort();
 
@@ -291,12 +291,12 @@ export function RecordsTable() {
 
     Object.entries(groups).forEach(([staffName, records]) => {
       const headers = [
-          'Tanggal IB', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
+          'Tanggal', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
           'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
       ];
 
       const dataRows = records.map(record => [
-        record.inseminationDate ? format(new Date(record.inseminationDate), 'yyyy-MM-dd') : '',
+        record.inseminationDate ? format(new Date(record.inseminationDate), 'dd-MM-yyyy') : '',
         record.puskeswan,
         record.breederName,
         record.breederAddress,
@@ -311,17 +311,20 @@ export function RecordsTable() {
       ]);
 
       const wsData = [
-        [], // Row 1
-        [], // Row 2
-        [staffName], // Row 3
-        headers, // Row 4
-        ...dataRows // Row 5 onwards
+        [], // Row 1 (Kosong)
+        [], // Row 2 (Kosong)
+        [staffName], // Row 3 (Nama Petugas di Kolom A)
+        ['', ...headers], // Row 4 (Header Tabel mulai di Kolom B)
+        ...dataRows.map(row => ['', ...row]) // Row 5 dst (Data mulai di Kolom B)
       ];
 
       const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-      // Set column widths
-      const wscols = headers.map(() => ({ wch: 15 }));
+      // Mengatur lebar kolom (Kolom A kecil, sisanya standar)
+      const wscols = [
+        { wch: 15 }, // Kolom A (Nama Petugas)
+        ...headers.map(() => ({ wch: 15 })) // Kolom B dst
+      ];
       ws['!cols'] = wscols;
 
       XLSX.utils.book_append_sheet(wb, ws, staffName.substring(0, 31));
