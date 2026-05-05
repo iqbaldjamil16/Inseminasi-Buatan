@@ -280,11 +280,23 @@ export function InseminationForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card>
-          <CardHeader>
+          <CardHeader className="relative">
             <CardTitle>Input Data Inseminasi Buatan</CardTitle>
             <CardDescription>
               Input detail pelayanan inseminasi buatan yang telah dilakukan.
             </CardDescription>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-blue-600 italic text-sm">https://inseminasibuatan.vercel.app/</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                onClick={handleCopyLink}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
         </Card>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -581,25 +593,11 @@ export function InseminationForm() {
             />
           </Card>
         </div>
-        <CardFooter className="flex flex-col items-center gap-6 px-0 pt-6">
-          <div className="flex justify-end w-full">
-            <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Simpan Data
-            </Button>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-blue-600 italic text-sm">https://inseminasibuatan.vercel.app/</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-              onClick={handleCopyLink}
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
-          </div>
+        <CardFooter className="flex flex-col items-end gap-4 px-0 pt-6">
+          <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Simpan Data
+          </Button>
         </CardFooter>
       </form>
     </Form>
