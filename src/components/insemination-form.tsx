@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Copy } from 'lucide-react';
 import { format } from 'date-fns';
 import { addDocumentNonBlocking, useFirestore } from '@/firebase';
 import { collection, serverTimestamp } from 'firebase/firestore';
@@ -94,7 +94,7 @@ export function InseminationForm() {
 
   const karossaVillages = [
     'Desa Benggaulu', 'Desa Kadaila', 'Desa Karossa', 'Desa Kayucalla', 'Desa Lara',
-    'Desa Lembah Hopo', 'Desa Salubiro', 'Desa Sanjango', 'Desa Sukamaju', 
+    'Desah Lembah Hopo', 'Desa Salubiro', 'Desa Sanjango', 'Desa Sukamaju', 
     'Desa Tasoskko', 'Desa Kambunong', 'Mora IV', 'UPT Lara III'
   ].sort();
   
@@ -142,15 +142,12 @@ export function InseminationForm() {
     };
     const allowedStaff = staffMap[watchPuskeswan];
     
-    // If the puskeswan doesn't have a specific staff list
     if (!allowedStaff) {
-      // and the current staff name is one from a specific list
       const allSpecificStaff = [...budongBudongStaff, ...karossaStaff, ...pangaleStaff, ...tobadakStaff, ...topoyoStaff, 'Lainnya'];
       if (allSpecificStaff.includes(watchStaffName)) {
         form.setValue('staffName', '');
       }
     } else {
-      // If the puskeswan HAS a specific list, but the selected staff is not in it
       if (watchStaffName && !allowedStaff.includes(watchStaffName) && watchStaffName !== 'Lainnya') {
         form.setValue('staffName', '');
       }
@@ -270,6 +267,14 @@ export function InseminationForm() {
     { name: 'strawId', label: 'ID Pejantan Straw' },
     { name: 'strawBatchId', label: 'ID Batch Straw' },
   ] as const;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText('https://inseminasibuatan.vercel.app/');
+    toast({
+      title: 'Tersalin',
+      description: 'Link telah disalin ke papan klip.',
+    });
+  };
 
   return (
     <Form {...form}>
@@ -576,11 +581,25 @@ export function InseminationForm() {
             />
           </Card>
         </div>
-        <CardFooter className="flex justify-end px-0 pt-6">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Simpan Data
-          </Button>
+        <CardFooter className="flex flex-col items-center gap-6 px-0 pt-6">
+          <div className="flex justify-end w-full">
+            <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Simpan Data
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-blue-600 italic text-sm">https://inseminasibuatan.vercel.app/</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+              onClick={handleCopyLink}
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
         </CardFooter>
       </form>
     </Form>
