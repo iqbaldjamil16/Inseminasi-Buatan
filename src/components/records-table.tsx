@@ -66,7 +66,7 @@ import { useToast } from '@/hooks/use-toast';
 import { StatisticsView } from './statistics-view';
 import * as XLSX from 'xlsx';
 
-// Master Data Definitions (Synced with InseminationForm)
+// Master Data Definitions
 const topoyoVillages = [
   'Desa Bambamanurug', 'Desa Budong-Budong', 'Desa Kabubu', 'Desa Pangalloang', 
   'Desa Paraili', 'Desa Salule\'bo', 'Desa Salupangkang', 'Desa Salupangkang IV', 
@@ -159,11 +159,9 @@ export function RecordsTable() {
       'Puskeswan Budong-Budong': budongBudongStaff,
       'Puskeswan Karossa': karossaStaff,
       'Puskeswan Pangale': pangaleStaff,
-      'Puskeswan Tobadak': tobadakVillages, // Corrected from staff name array inconsistency if any
+      'Puskeswan Tobadak': ['Endang', 'drh. Ishak'],
       'Puskeswan Topoyo': topoyoStaff,
     };
-    // Special handle for tobadak staff
-    const tobadakStaffFixed = ['Endang', 'drh. Ishak'].sort();
 
     if (selectedPuskeswan === 'all') {
       const allUniqueStaff = new Set<string>();
@@ -173,7 +171,6 @@ export function RecordsTable() {
       return Array.from(allUniqueStaff).sort();
     }
     
-    if (selectedPuskeswan === 'Puskeswan Tobadak') return tobadakStaffFixed;
     return staffMap[selectedPuskeswan] || [];
   }, [selectedPuskeswan, parsedRecords]);
 
@@ -318,16 +315,15 @@ export function RecordsTable() {
         [], // Row 1
         [], // Row 2
         [staffName], // Row 3
-        ['', ...headers], // Row 4 (Header mulai dari Kolom B)
-        ...dataRows.map(row => ['', ...row]) // Row 5 dst (Data mulai dari Kolom B)
+        ['', ...headers], // Row 4
+        ...dataRows.map(row => ['', ...row]) // Row 5+
       ];
 
       const ws = XLSX.utils.aoa_to_sheet(wsData);
-
       const wscols = [
         { wch: 20 }, // Kolom A
         { wch: 5 },  // Kolom B (No.)
-        ...headers.slice(1).map(() => ({ wch: 15 })) // Kolom C dst
+        ...headers.slice(1).map(() => ({ wch: 15 })) 
       ];
       ws['!cols'] = wscols;
 
@@ -343,65 +339,6 @@ export function RecordsTable() {
       <span className="text-right font-medium">{value || '-'}</span>
     </div>
   );
-  
-  const TableSkeleton = () => (
-     <div className="space-y-2">
-      {[...Array(5)].map((_, i) => (
-        <Skeleton key={i} className="h-12 w-full" />
-      ))}
-    </div>
-  );
-  
-  const StatsSkeleton = () => (
-    <div className="grid gap-6">
-        {[...Array(3)].map((_, i) => (
-            <Card key={i}>
-                <CardHeader>
-                    <Skeleton className="h-6 w-1/3" />
-                    <Skeleton className="h-4 w-2/3 mt-2" />
-                </CardHeader>
-                <CardContent>
-                    <Skeleton className="h-[250px] w-full" />
-                </CardContent>
-            </Card>
-        ))}
-    </div>
-  );
-
-  const getVillageOptions = (puskeswan: string) => {
-    switch (puskeswan) {
-        case 'Puskeswan Topoyo': return topoyoVillages;
-        case 'Puskeswan Tobadak': return tobadakVillages;
-        case 'Puskeswan Pangale': return pangaleVillages;
-        case 'Puskeswan Budong-Budong': return budongBudongVillages;
-        case 'Puskeswan Karossa': return karossaVillages;
-        default: return [];
-    }
-  };
-
-  const getStaffOptions = (puskeswan: string) => {
-    switch (puskeswan) {
-      case 'Puskeswan Budong-Budong': return budongBudongStaff;
-      case 'Puskeswan Karossa': return karossaStaff;
-      case 'Puskeswan Pangale': return pangaleStaff;
-      case 'Puskeswan Tobadak': return ['Endang', 'drh. Ishak'].sort();
-      case 'Puskeswan Topoyo': return topoyoStaff;
-      default: return [];
-    }
-  };
-
-  const villageOptions = getVillageOptions(watchPuskeswan);
-  const staffOptions = getStaffOptions(watchPuskeswan);
-
-  const showVillageDropdown = !!watchPuskeswan;
-  const isOtherAddress = showVillageDropdown && (watchBreederAddress === 'Lainnya' || (!villageOptions.includes(watchBreederAddress) && watchBreederAddress !== ''));
-  
-  const showStaffDropdown = !!watchPuskeswan;
-  const isOtherStaff = showStaffDropdown && (watchStaffName === 'Lainnya' || (!staffOptions.includes(watchStaffName) && watchStaffName !== ''));
-  
-  const isOtherCowType = watchCowType === 'Lainnya' || (!commonSapiOptions.includes(watchCowType) && watchCowType !== '');
-  const isOtherStrawType = watchStrawType === 'Lainnya' || (!commonSapiOptions.includes(watchStrawType) && watchStrawType !== '');
-  const isOtherStrawProducer = watchStrawProducer === 'Lainnya' || (!producerOptions.includes(watchStrawProducer) && watchStrawProducer !== '');
 
   return (
     <div className="space-y-6">
@@ -421,9 +358,7 @@ export function RecordsTable() {
         <CardContent className="space-y-4">
             <div className="space-y-2">
                 <Label htmlFor="filter-puskeswan">Puskeswan</Label>
-                <Select onValueChange={(val) => {
-                  setSelectedPuskeswan(val);
-                }} value={selectedPuskeswan}>
+                <Select onValueChange={setSelectedPuskeswan} value={selectedPuskeswan}>
                     <SelectTrigger id="filter-puskeswan">
                         <SelectValue placeholder="Semua Puskeswan" />
                     </SelectTrigger>
@@ -497,72 +432,56 @@ export function RecordsTable() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-start items-center gap-4">
-              <div className="flex items-center bg-muted p-1 rounded-lg w-full sm:w-auto">
-                <Button 
-                  variant={view === 'table' ? 'secondary' : 'ghost'} 
-                  size="sm" 
-                  onClick={() => setView('table')} 
-                  className="flex-1 sm:flex-none"
-                >
-                  <TableIcon className="mr-2 h-4 w-4" />
-                  Tabel
-                </Button>
-                <Button 
-                  variant={view === 'stats' ? 'secondary' : 'ghost'} 
-                  size="sm" 
-                  onClick={() => setView('stats')}
-                  className="flex-1 sm:flex-none"
-                >
-                  <BarChart className="mr-2 h-4 w-4" />
-                  Statistik
-                </Button>
-              </div>
+            <div className="flex items-center bg-muted p-1 rounded-lg w-full sm:w-auto self-start">
+              <Button 
+                variant={view === 'table' ? 'secondary' : 'ghost'} 
+                size="sm" 
+                onClick={() => setView('table')} 
+                className="flex-1 sm:flex-none"
+              >
+                <TableIcon className="mr-2 h-4 w-4" />
+                Tabel
+              </Button>
+              <Button 
+                variant={view === 'stats' ? 'secondary' : 'ghost'} 
+                size="sm" 
+                onClick={() => setView('stats')}
+                className="flex-1 sm:flex-none"
+              >
+                <BarChart className="mr-2 h-4 w-4" />
+                Statistik
+              </Button>
             </div>
 
             {view === 'table' ? (
-              isLoading ? <TableSkeleton /> : (
+              isLoading ? <Skeleton className="h-48 w-full" /> : (
                 <div className="w-full">
                   <div className="md:hidden">
                     <Accordion type="single" collapsible className="w-full space-y-4">
-                      {filteredData.length > 0 ? (
-                        filteredData.map((record) => (
-                          <AccordionItem value={record.id!} key={record.id!} className="border rounded-lg">
-                            <AccordionTrigger className="p-4 hover:no-underline">
-                              <div className="flex items-center justify-between w-full">
-                                  <div className="flex-1 text-left">
-                                      <div className="font-bold">{record.staffName}</div>
-                                      <div className="text-sm text-muted-foreground">{record.puskeswan}</div>
-                                      <div className="text-xs text-muted-foreground pt-1">{record.inseminationDate ? format(new Date(record.inseminationDate), 'dd/MM/yyyy') : 'N/A'}</div>
-                                  </div>
-                                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                              </div>
-                            </AccordionTrigger>
-                            <AccordionContent className="p-4 pt-0">
-                              <div className="space-y-2 border-t pt-4">
-                                <RecordDetailRow label="Nama Peternak" value={record.breederName} />
-                                <RecordDetailRow label="Alamat" value={record.breederAddress} />
-                                <RecordDetailRow label="No. HP" value={record.phoneNumber} />
-                                <RecordDetailRow label="ID Peternak (KTP)" value={record.breederId} />
-                                <RecordDetailRow label="Jenis Sapi" value={record.cowType} />
-                                <RecordDetailRow label="ID Sapi (Eartag)" value={record.cowId} />
-                                <RecordDetailRow label="Jenis Straw" value={record.strawType} />
-                                <RecordDetailRow label="ID Pejantan" value={record.strawId} />
-                                <RecordDetailRow label="ID Batch" value={record.strawBatchId} />
-                                <RecordDetailRow label="Produsen Straw" value={record.strawProducer} />
-                                <div className="flex justify-end gap-2 pt-4">
-                                    <Button variant="outline" size="icon" onClick={() => setEditingRecord(record)}><FilePenLine className="h-4 w-4" /></Button>
-                                    <Button variant="destructive" size="icon" onClick={() => setDeletingRecord(record)}><Trash2 className="h-4 w-4" /></Button>
+                      {filteredData.map((record) => (
+                        <AccordionItem value={record.id!} key={record.id!} className="border rounded-lg bg-card">
+                          <AccordionTrigger className="p-4 hover:no-underline">
+                            <div className="flex items-center justify-between w-full">
+                                <div className="flex-1 text-left">
+                                    <div className="font-bold">{record.staffName}</div>
+                                    <div className="text-sm text-muted-foreground">{record.puskeswan}</div>
+                                    <div className="text-xs text-muted-foreground pt-1">{record.inseminationDate ? format(new Date(record.inseminationDate), 'dd/MM/yyyy') : 'N/A'}</div>
                                 </div>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="p-4 pt-0">
+                            <div className="space-y-2 border-t pt-4">
+                              <RecordDetailRow label="Nama Peternak" value={record.breederName} />
+                              <RecordDetailRow label="ID Sapi" value={record.cowId} />
+                              <RecordDetailRow label="Pejantan" value={record.strawId} />
+                              <div className="flex justify-end gap-2 pt-4">
+                                  <Button variant="outline" size="icon" onClick={() => setEditingRecord(record)}><FilePenLine className="h-4 w-4" /></Button>
+                                  <Button variant="destructive" size="icon" onClick={() => setDeletingRecord(record)}><Trash2 className="h-4 w-4" /></Button>
                               </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        ))
-                      ) : (
-                        <div className="text-center text-muted-foreground py-12">
-                          {(recordsData && recordsData.length > 0) ? 'Tidak ada data yang cocok.' : 'Belum ada data tercatat.'}
-                        </div>
-                      )}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
                     </Accordion>
                   </div>
         
@@ -579,405 +498,40 @@ export function RecordsTable() {
                           </TableRow>
                       </TableHeader>
                       <TableBody>
-                          {filteredData.length > 0 ? (
-                              filteredData.map((record) => (
-                                  <TableRow key={record.id}>
-                                      <TableCell>{record.inseminationDate ? format(new Date(record.inseminationDate), 'dd/MM/yyyy') : 'N/A'}</TableCell>
-                                      <TableCell>
-                                          <div className="font-medium">{record.breederName}</div>
-                                          <div className="text-sm text-muted-foreground">{record.breederId}</div>
-                                      </TableCell>
-                                      <TableCell>{record.cowId}</TableCell>
-                                      <TableCell>
-                                          <div className="font-medium">{record.strawType}</div>
-                                          <div className="text-sm text-muted-foreground">{record.strawId}</div>
-                                      </TableCell>
-                                      <TableCell>
-                                        <div className="font-medium">{record.staffName}</div>
-                                        <div className="text-sm text-muted-foreground">{record.puskeswan}</div>
-                                      </TableCell>
-                                      <TableCell className="text-right">
-                                          <div className="flex items-center justify-end gap-2">
-                                              <Button variant="ghost" size="icon" onClick={() => setEditingRecord(record)}>
-                                                  <FilePenLine className="h-4 w-4" />
-                                              </Button>
-                                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setDeletingRecord(record)}>
-                                                  <Trash2 className="h-4 w-4" />
-                                              </Button>
-                                          </div>
-                                      </TableCell>
-                                  </TableRow>
-                              ))
-                          ) : (
-                              <TableRow>
-                                  <TableCell colSpan={6} className="h-24 text-center">
-                                  {(recordsData && recordsData.length > 0) ? 'Tidak ada data yang cocok.' : 'Belum ada data tercatat.'}
+                          {filteredData.map((record) => (
+                              <TableRow key={record.id}>
+                                  <TableCell>{record.inseminationDate ? format(new Date(record.inseminationDate), 'dd/MM/yyyy') : 'N/A'}</TableCell>
+                                  <TableCell>
+                                      <div className="font-medium">{record.breederName}</div>
+                                      <div className="text-sm text-muted-foreground">{record.breederId}</div>
+                                  </TableCell>
+                                  <TableCell>{record.cowId}</TableCell>
+                                  <TableCell>{record.strawType}</TableCell>
+                                  <TableCell>{record.staffName}</TableCell>
+                                  <TableCell className="text-right">
+                                      <div className="flex items-center justify-end gap-2">
+                                          <Button variant="ghost" size="icon" onClick={() => setEditingRecord(record)}>
+                                              <FilePenLine className="h-4 w-4" />
+                                          </Button>
+                                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeletingRecord(record)}>
+                                              <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                      </div>
                                   </TableCell>
                               </TableRow>
-                          )}
+                          ))}
                       </TableBody>
                       </Table>
                   </div>
                 </div>
               )
             ) : (
-              isLoading ? <StatsSkeleton /> : <StatisticsView records={parsedRecords} />
+              <StatisticsView records={parsedRecords} />
             )}
           </div>
         </CardContent>
       </Card>
-
-      <Dialog open={!!editingRecord} onOpenChange={(open) => !open && setEditingRecord(null)}>
-          <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Edit Catatan Inseminasi</DialogTitle>
-              <DialogDescription>
-                Lakukan perubahan pada data yang sudah ada. Klik simpan jika sudah selesai.
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleUpdate)} className="space-y-4 max-h-[70vh] overflow-y-auto p-1 pr-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="inseminationDate"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Tanggal IB</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="date"
-                                        {...field}
-                                        value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
-                                        onChange={(e) => field.onChange(e.target.valueAsDate)}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="puskeswan"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Puskeswan</FormLabel>
-                                <Select onValueChange={(val) => {
-                                  field.onChange(val);
-                                  form.setValue('staffName', '');
-                                  form.setValue('breederAddress', '');
-                                }} value={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger aria-label="Pilih Puskeswan">
-                                            <SelectValue placeholder="Pilih Puskeswan" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {puskeswanOptions.map((option) => (
-                                            <SelectItem key={option} value={option}>
-                                                {option}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="staffName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nama Petugas</FormLabel>
-                          {showStaffDropdown ? (
-                            <>
-                              <Select onValueChange={field.onChange} value={staffOptions.includes(field.value) ? field.value : (field.value === '' ? '' : 'Lainnya')}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Pilih Petugas" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {staffOptions.map((staff) => (
-                                    <SelectItem key={staff} value={staff}>{staff}</SelectItem>
-                                  ))}
-                                  <SelectItem value="Lainnya">Lainnya</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              {isOtherStaff && (
-                                <FormControl className="mt-2">
-                                  <Input 
-                                    placeholder="Masukkan nama petugas" 
-                                    value={field.value === 'Lainnya' ? '' : field.value}
-                                    onChange={(e) => field.onChange(e.target.value)} 
-                                  />
-                                </FormControl>
-                              )}
-                            </>
-                          ) : (
-                            <FormControl>
-                              <Input placeholder="Masukkan nama petugas" {...field} />
-                            </FormControl>
-                          )}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="breederAddress"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Alamat Peternak</FormLabel>
-                          {showVillageDropdown ? (
-                            <>
-                              <Select onValueChange={field.onChange} value={villageOptions.includes(field.value) ? field.value : (field.value === '' ? '' : 'Lainnya')}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Pilih Desa" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {villageOptions.map((village) => (
-                                    <SelectItem key={village} value={village}>{village}</SelectItem>
-                                  ))}
-                                  <SelectItem value="Lainnya">Lainnya</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              {isOtherAddress && (
-                                <FormControl className="mt-2">
-                                  <Input 
-                                    placeholder="Masukkan alamat lengkap" 
-                                    value={field.value === 'Lainnya' ? '' : field.value}
-                                    onChange={(e) => field.onChange(e.target.value)} 
-                                  />
-                                </FormControl>
-                              )}
-                            </>
-                          ) : (
-                            <FormControl>
-                              <Input placeholder="Masukkan alamat lengkap" {...field} />
-                            </FormControl>
-                          )}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="breederName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nama Peternak</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Masukkan nama peternak" {...field} value={field.value || ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="phoneNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nomor HP</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Masukkan nomor HP" {...field} value={field.value || ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="breederId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>ID Peternak (KTP)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Masukkan ID peternak (16 digit)" {...field} value={field.value || ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="cowType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Jenis Sapi Indukan</FormLabel>
-                          <Select onValueChange={field.onChange} value={commonSapiOptions.includes(field.value) ? field.value : (field.value === '' ? '' : 'Lainnya')}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Pilih Jenis Sapi" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {commonSapiOptions.map((type) => (
-                                <SelectItem key={type} value={type}>{type}</SelectItem>
-                              ))}
-                              <SelectItem value="Lainnya">Lainnya</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          {isOtherCowType && (
-                            <FormControl className="mt-2">
-                              <Input
-                                placeholder="Masukkan jenis sapi"
-                                value={field.value === 'Lainnya' ? '' : field.value}
-                                onChange={(e) => field.onChange(e.target.value)}
-                              />
-                            </FormControl>
-                          )}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="cowId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>ID Indukan (Eartag)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Masukkan ID eartag" {...field} value={field.value || ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="strawType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Jenis Straw Pejantan</FormLabel>
-                          <Select onValueChange={field.onChange} value={commonSapiOptions.includes(field.value) ? field.value : (field.value === '' ? '' : 'Lainnya')}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Pilih Jenis Straw" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {commonSapiOptions.map((type) => (
-                                <SelectItem key={type} value={type}>{type}</SelectItem>
-                              ))}
-                              <SelectItem value="Lainnya">Lainnya</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          {isOtherStrawType && (
-                            <FormControl className="mt-2">
-                              <Input
-                                placeholder="Masukkan jenis straw"
-                                value={field.value === 'Lainnya' ? '' : field.value}
-                                onChange={(e) => field.onChange(e.target.value)}
-                              />
-                            </FormControl>
-                          )}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="strawId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>ID Pejantan Straw</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Masukkan ID pejantan" {...field} value={field.value || ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="strawBatchId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>ID Batch Straw</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Masukkan ID batch" {...field} value={field.value || ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="strawProducer"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Produsen Straw</FormLabel>
-                          <Select onValueChange={field.onChange} value={producerOptions.includes(field.value) ? field.value : (field.value === '' ? '' : 'Lainnya')}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Pilih Produsen" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {producerOptions.map((producer) => (
-                                <SelectItem key={producer} value={producer}>{producer}</SelectItem>
-                              ))}
-                              <SelectItem value="Lainnya">Lainnya</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          {isOtherStrawProducer && (
-                            <FormControl className="mt-2">
-                              <Input
-                                placeholder="Masukkan produsen straw"
-                                value={field.value === 'Lainnya' ? '' : field.value}
-                                onChange={(e) => field.onChange(e.target.value)}
-                              />
-                            </FormControl>
-                          )}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                </div>
-                <DialogFooter className="pt-4">
-                  <DialogClose asChild>
-                    <Button type="button" variant="secondary">Batal</Button>
-                  </DialogClose>
-                  <Button type="submit" disabled={isSaving}>
-                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Simpan Perubahan
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-      </Dialog>
-
-      <AlertDialog open={!!deletingRecord} onOpenChange={(open) => !open && setDeletingRecord(null)}>
-          <AlertDialogContent>
-              <AlertDialogHeader>
-                  <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                      Tindakan ini tidak dapat dibatalkan. Data akan dihapus secara permanen dari server.
-                  </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                  <AlertDialogCancel>Batal</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Hapus</AlertDialogAction>
-              </AlertDialogFooter>
-          </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
+
