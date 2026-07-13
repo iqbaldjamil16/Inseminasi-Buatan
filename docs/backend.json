@@ -19,31 +19,158 @@
           "type": "string",
           "description": "Name of the staff member who performed the insemination."
         },
-        "puskeswanId": {
+        "puskeswan": {
           "type": "string",
-          "description": "Reference to Puskeswan. (Relationship: Puskeswan 1:N InseminationRecord)"
+          "description": "Name of the animal health center."
+        },
+        "breederName": {
+          "type": "string",
+          "description": "Name of the breeder."
+        },
+        "breederAddress": {
+          "type": "string",
+          "description": "Address of the breeder."
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "Phone number of the breeder."
         },
         "breederId": {
           "type": "string",
-          "description": "Reference to Breeder. (Relationship: Breeder 1:N InseminationRecord)"
+          "description": "Unique identifier for the breeder (KTP)."
+        },
+        "cowType": {
+          "type": "string",
+          "description": "Breed of the cow."
         },
         "cowId": {
           "type": "string",
-          "description": "Reference to Cow. (Relationship: Cow 1:N InseminationRecord)"
+          "description": "Unique identifier for the cow (Eartag)."
+        },
+        "strawType": {
+          "type": "string",
+          "description": "Type of straw (Pejantan)."
         },
         "strawId": {
           "type": "string",
-          "description": "Reference to Straw. (Relationship: Straw 1:N InseminationRecord)"
+          "description": "Unique identifier for the straw."
+        },
+        "strawBatchId": {
+          "type": "string",
+          "description": "Batch ID of the straw."
+        },
+        "strawProducer": {
+          "type": "string",
+          "description": "Producer of the straw."
         }
       },
       "required": [
-        "id",
         "inseminationDate",
         "staffName",
-        "puskeswanId",
+        "puskeswan",
+        "breederName",
+        "breederAddress",
+        "phoneNumber",
         "breederId",
+        "cowType",
         "cowId",
-        "strawId"
+        "strawType",
+        "strawId",
+        "strawBatchId",
+        "strawProducer"
+      ]
+    },
+    "BirthRecord": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BirthRecord",
+      "type": "object",
+      "description": "Represents a record of a livestock birth event.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the birth record."
+        },
+        "reportDate": {
+          "type": "string",
+          "description": "Date the birth was reported.",
+          "format": "date-time"
+        },
+        "staffName": {
+          "type": "string",
+          "description": "Name of the staff member who recorded the birth."
+        },
+        "puskeswan": {
+          "type": "string",
+          "description": "Name of the animal health center."
+        },
+        "breederName": {
+          "type": "string",
+          "description": "Name of the breeder."
+        },
+        "breederAddress": {
+          "type": "string",
+          "description": "Address of the breeder."
+        },
+        "breederId": {
+          "type": "string",
+          "description": "Identity of the breeder (KTP/HP)."
+        },
+        "matingType": {
+          "type": "string",
+          "description": "Type of mating (Kawin Alam or Inseminasi Buatan)."
+        },
+        "cowType": {
+          "type": "string",
+          "description": "Breed of the mother cow."
+        },
+        "cowEartag": {
+          "type": "string",
+          "description": "Eartag of the mother cow."
+        },
+        "bullType": {
+          "type": "string",
+          "description": "Breed of the father bull."
+        },
+        "bullEartag": {
+          "type": "string",
+          "description": "Eartag of the father bull."
+        },
+        "strawId": {
+          "type": "string",
+          "description": "ID of the straw used (for IB)."
+        },
+        "strawBatchId": {
+          "type": "string",
+          "description": "Batch ID of the straw (for IB)."
+        },
+        "strawProducer": {
+          "type": "string",
+          "description": "Producer of the straw (for IB)."
+        },
+        "birthDate": {
+          "type": "string",
+          "description": "Date of birth.",
+          "format": "date-time"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "gender": { "type": "string" },
+              "count": { "type": "string" }
+            }
+          }
+        }
+      },
+      "required": [
+        "reportDate",
+        "staffName",
+        "puskeswan",
+        "breederName",
+        "breederAddress",
+        "breederId",
+        "matingType"
       ]
     },
     "Puskeswan": {
@@ -167,11 +294,27 @@
           "schema": {
             "$ref": "#/backend/entities/InseminationRecord"
           },
-          "description": "Stores insemination records. Includes references to Puskeswan, Breeder, Cow, and Straw.",
+          "description": "Stores insemination records.",
           "params": [
             {
               "name": "inseminationRecordId",
               "description": "Unique identifier for the insemination record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/birthRecords/{birthRecordId}",
+        "definition": {
+          "entityName": "BirthRecord",
+          "schema": {
+            "$ref": "#/backend/entities/BirthRecord"
+          },
+          "description": "Stores birth records.",
+          "params": [
+            {
+              "name": "birthRecordId",
+              "description": "Unique identifier for the birth record."
             }
           ]
         }
@@ -241,6 +384,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to store insemination records and related data (Puskeswan, Breeder, Cow, Straw). The structure prioritizes authorization independence by storing all insemination records under a single collection and denormalizing the relevant information into the insemination record document. This eliminates the need for complex `get()` calls in security rules and enables atomic operations.\n\nThe primary collection is `inseminationRecords`. It stores data about each insemination event. References to other entities (Puskeswan, Breeder, Cow, and Straw) are stored as IDs within the InseminationRecord documents. \n\nThis structure allows for simple, secure `list` operations (QAPs) on the `inseminationRecords` collection, as the rules can be based solely on the data contained within each document.  The denormalization of data contributes to authorization independence, allowing for easier management of access control and data integrity."
+    "reasoning": "The Firestore structure is expanded to include birth records alongside insemination records. All authenticated users are granted full access to these collections to facilitate collaborative data entry and management in this internal tool prototype."
   }
 }
