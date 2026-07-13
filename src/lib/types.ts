@@ -65,6 +65,9 @@ export const BirthRecordSchema = z.object({
   cowEartag: z.string().optional(),
   bullType: z.string().optional(),
   bullEartag: z.string().optional(),
+  strawId: z.string().optional(),
+  strawBatchId: z.string().optional(),
+  strawProducer: z.string().optional(),
   birthDate: z.date().optional(),
   children: z.array(z.object({
     gender: z.string().min(1, "Pilih jenis kelamin"),

@@ -83,6 +83,9 @@ export function InseminationForm() {
       cowEartag: '',
       bullType: '',
       bullEartag: '',
+      strawId: '',
+      strawBatchId: '',
+      strawProducer: '',
       children: [{ gender: '', count: '1' }],
     },
   });
@@ -650,10 +653,59 @@ export function InseminationForm() {
                       </CardContent>
                     </Card>
 
+                    {watchMatingType === 'Inseminasi Buatan' && (
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium">Detail Straw IB</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <FormField
+                            control={formKelahiran.control}
+                            name="strawId"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Id Straw Pejantan</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Masukkan ID straw" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formKelahiran.control}
+                            name="strawBatchId"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Id Batch Straw</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Masukkan batch ID" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={formKelahiran.control}
+                            name="strawProducer"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Produsen Straw</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Masukkan produsen" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </CardContent>
+                      </Card>
+                    )}
+
                     <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium flex items-center gap-2">
-                          <CalendarIcon className="h-4 w-4 text-primary" />
+                      <CardHeader className="pb-2 flex items-center gap-2">
+                        <CalendarIcon className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-sm font-medium">
                           Tanggal Lahir Anak
                         </CardTitle>
                       </CardHeader>
