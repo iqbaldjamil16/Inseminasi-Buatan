@@ -82,67 +82,6 @@ export function InseminationForm() {
     },
   });
 
-  const watchPuskeswanInseminasi = formInseminasi.watch('puskeswan');
-  const watchPuskeswanKelahiran = formKelahiran.watch('puskeswan');
-
-  const topoyoVillages = [
-    'Desa Bambamanurug', 'Desa Budong-Budong', 'Desa Kabubu', 'Desa Pangalloang', 
-    'Desa Paraili', 'Desa Salule\'bo', 'Desa Salupangkang', 'Desa Salupangkang IV', 
-    'Desa Sinabatta', 'Desa Tabolang', 'Desa Tangkau', 'Desa Tappilina', 
-    'Desa Topoyo', 'Desa Tumbu', 'Desa Waeputeh'
-  ].sort();
-
-  const tobadakVillages = [
-    'Desa Bambadaru', 'Desa Batu Parigi', 'Desa Mahahe', 'Desa Polongaan', 
-    'Desa Saluadak', 'Desa Sejati', 'Desa Sulobaja', 'Desa Tobadak'
-  ].sort();
-  
-  const pangaleVillages = [
-      'Desa Kombiling', 'Desa Kuo', 'Desa Lamba-lamba', 'Desa Lemo-Lemo', 
-      'Desa Pangale', 'Desa Polo Camba', 'Desa Polo Lereng', 'Desa Polo Pangale', 
-      'Desa Sartanamaju'
-  ].sort();
-
-  const budongBudongVillages = [
-    'Desa Babana', 'Desa Barakkang', 'Desa Bojo', 'Desa Kire', 'Desa Lembah Hada', 
-    'Desa Lumu', 'Desa Pasapa', 'Desa Potantanakayyang', 'Desa Salogatta', 
-    'Desa Salumanurung', 'Desa Tinali'
-  ].sort();
-
-  const karossaVillages = [
-    'Desa Benggaulu', 'Desa Kadaila', 'Desa Karossa', 'Desa Kayucalla', 'Desa Lara',
-    'Desa Lembah Hopo', 'Desa Salubiro', 'Desa Sanjango', 'Desa Sukamaju', 
-    'Desa Tasoskko', 'Desa Kambunong', 'Mora IV', 'UPT Lara III'
-  ].sort();
-  
-  const budongBudongStaff = ['Anshari Saleh', 'Hadi', 'Rahman'].sort();
-  const karossaStaff = ['Asari Rasyid', 'drh. Stephani', 'Basuki', 'Hasaruddin'].sort();
-  const pangaleStaff = ['drh. Ketut Elok', 'Mansyur', 'Jawaril', 'Sugeng'].sort();
-  const tobadakStaff = ['Endang', 'drh. Ishak'].sort();
-  const topoyoStaff = ['drh. Iqbal Djamil', 'Alfons B', 'Haslim'].sort();
-
-  const getVillageOptions = (puskeswan: string) => {
-    switch (puskeswan) {
-        case 'Puskeswan Topoyo': return topoyoVillages;
-        case 'Puskeswan Tobadak': return tobadakVillages;
-        case 'Puskeswan Pangale': return pangaleVillages;
-        case 'Puskeswan Budong-Budong': return budongBudongVillages;
-        case 'Puskeswan Karossa': return karossaVillages;
-        default: return [];
-    }
-  };
-
-  const getStaffOptions = (puskeswan: string) => {
-    switch (puskeswan) {
-      case 'Puskeswan Budong-Budong': return budongBudongStaff;
-      case 'Puskeswan Karossa': return karossaStaff;
-      case 'Puskeswan Pangale': return pangaleStaff;
-      case 'Puskeswan Tobadak': return tobadakStaff;
-      case 'Puskeswan Topoyo': return topoyoStaff;
-      default: return [];
-    }
-  };
-
   async function onSubmitInseminasi(data: InseminationRecord) {
     if (!firestore) return;
     setIsSubmittingInseminasi(true);
@@ -184,7 +123,7 @@ export function InseminationForm() {
     <div className="space-y-6">
       <Card>
         <CardHeader className="relative">
-          <CardTitle>Aplikasi IB-Pro</CardTitle>
+          <CardTitle>Input Data Inseminasi Dan Kelahiran Ternak</CardTitle>
           <CardDescription>
             Input detail pelayanan inseminasi buatan dan kelahiran ternak.
           </CardDescription>
@@ -223,7 +162,6 @@ export function InseminationForm() {
           </TabsList>
         </Card>
 
-        {/* TAB INSEMINASI - STRUKTUR ASLI TETAP TERJAGA */}
         <TabsContent value="inseminasi" className="mt-6">
           <Form {...formInseminasi}>
             <form onSubmit={formInseminasi.handleSubmit(onSubmitInseminasi)} className="space-y-6">
@@ -460,13 +398,11 @@ export function InseminationForm() {
           </Form>
         </TabsContent>
 
-        {/* TAB KELAHIRAN - DIKEMBANGKAN KHUSUS DENGAN CARD PER KOLOM */}
         <TabsContent value="kelahiran" className="mt-6">
           <Form {...formKelahiran}>
             <form onSubmit={formKelahiran.handleSubmit(onSubmitKelahiran)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 
-                {/* 1. Tanggal Laporan */}
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -495,7 +431,6 @@ export function InseminationForm() {
                   </CardContent>
                 </Card>
 
-                {/* 2. Puskeswan */}
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium">Puskeswan</CardTitle>
@@ -525,7 +460,6 @@ export function InseminationForm() {
                   </CardContent>
                 </Card>
 
-                {/* 3. Nama Petugas */}
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium">Nama Petugas</CardTitle>
@@ -546,7 +480,6 @@ export function InseminationForm() {
                   </CardContent>
                 </Card>
 
-                {/* 4. Nama Peternak */}
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium">Nama Peternak</CardTitle>
@@ -567,31 +500,18 @@ export function InseminationForm() {
                   </CardContent>
                 </Card>
 
-                {/* 5. Identitas Peternak (KTP/No.HP) */}
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium">Identitas Peternak</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent>
                     <FormField
                       control={formKelahiran.control}
                       name="breederId"
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Input placeholder="Nomor KTP (16 Digit)" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={formKelahiran.control}
-                      name="phoneNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input placeholder="Nomor HP" {...field} />
+                            <Input placeholder="KTP / No. HP / Keduanya" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -600,7 +520,6 @@ export function InseminationForm() {
                   </CardContent>
                 </Card>
 
-                {/* 6. Alamat */}
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium">Alamat Peternak</CardTitle>
@@ -621,7 +540,6 @@ export function InseminationForm() {
                   </CardContent>
                 </Card>
 
-                {/* 7. Jenis Perkawinan */}
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium">Jenis Perkawinan</CardTitle>

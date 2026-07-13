@@ -56,12 +56,10 @@ export const BirthRecordSchema = z.object({
   breederAddress: z.string().min(2, {
     message: 'Alamat peternak harus diisi.',
   }),
-  phoneNumber: z.string().min(10, {
-    message: 'Nomor HP harus valid.',
+  phoneNumber: z.string().optional(),
+  breederId: z.string().min(2, {
+    message: 'Identitas peternak (KTP/HP) harus diisi.',
   }),
-  breederId: z.string().min(16, {
-    message: 'ID Peternak (KTP) harus 16 digit.',
-  }).max(16),
   matingType: z.string().min(1, { message: 'Jenis perkawinan harus dipilih.' }),
   createdAt: z.any().optional(),
 });
