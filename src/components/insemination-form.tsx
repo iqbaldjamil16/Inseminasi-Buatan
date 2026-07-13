@@ -307,12 +307,18 @@ export function InseminationForm() {
 
       <Tabs defaultValue="inseminasi" className="w-full">
         <Card className="p-1">
-          <TabsList className="grid w-full grid-cols-2 h-12">
-            <TabsTrigger value="inseminasi" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-2 h-12 bg-muted/50">
+            <TabsTrigger 
+              value="inseminasi" 
+              className="flex items-center gap-2 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-all duration-300"
+            >
               <Beef className="h-4 w-4" />
               Inseminasi
             </TabsTrigger>
-            <TabsTrigger value="kelahiran" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="kelahiran" 
+              className="flex items-center gap-2 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-all duration-300"
+            >
               <Baby className="h-4 w-4" />
               Kelahiran
             </TabsTrigger>
