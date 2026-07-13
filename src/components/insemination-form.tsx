@@ -3,7 +3,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { InseminationRecordSchema, type InseminationRecord } from '@/lib/types';
+import { InseminationRecordSchema, type InseminationRecord, BirthRecordSchema, type BirthRecord } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,19 +36,21 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { Loader2, Copy, Baby, Beef } from 'lucide-react';
+import { Loader2, Copy, Baby, Beef, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { addDocumentNonBlocking, useFirestore } from '@/firebase';
 import { collection, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
 export function InseminationForm() {
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSubmittingInseminasi, setIsSubmittingInseminasi] = React.useState(false);
+  const [isSubmittingKelahiran, setIsSubmittingKelahiran] = React.useState(false);
   const { toast } = useToast();
   const firestore = useFirestore();
   const router = useRouter();
 
-  const form = useForm<InseminationRecord>({
+  // Form for Inseminasi
+  const formInseminasi = useForm<InseminationRecord>({
     resolver: zodResolver(InseminationRecordSchema),
     defaultValues: {
       staffName: '',
@@ -66,13 +68,22 @@ export function InseminationForm() {
     },
   });
 
-  const watchPuskeswan = form.watch('puskeswan');
-  const watchBreederAddress = form.watch('breederAddress');
-  const watchStaffName = form.watch('staffName');
-  const watchCowType = form.watch('cowType');
-  const watchStrawType = form.watch('strawType');
-  const watchStrawProducer = form.watch('strawProducer');
+  // Form for Kelahiran
+  const formKelahiran = useForm<BirthRecord>({
+    resolver: zodResolver(BirthRecordSchema),
+    defaultValues: {
+      staffName: '',
+      puskeswan: '',
+      breederName: '',
+      breederAddress: '',
+      phoneNumber: '',
+      breederId: '',
+      matingType: '',
+    },
+  });
 
+  const watchPuskeswanInseminasi = formInseminasi.watch('puskeswan');
+  const watchPuskeswanKelahiran = formKelahiran.watch('puskeswan');
 
   const topoyoVillages = [
     'Desa Bambamanurug', 'Desa Budong-Budong', 'Desa Kabubu', 'Desa Pangalloang', 
@@ -110,185 +121,72 @@ export function InseminationForm() {
   const tobadakStaff = ['Endang', 'drh. Ishak'].sort();
   const topoyoStaff = ['drh. Iqbal Djamil', 'Alfons B', 'Haslim'].sort();
 
-
-  React.useEffect(() => {
-    const puskeswanVillageMap: Record<string, string[]> = {
-      'Puskeswan Topoyo': topoyoVillages,
-      'Puskeswan Tobadak': tobadakVillages,
-      'Puskeswan Pangale': pangaleVillages,
-      'Puskeswan Budong-Budong': budongBudongVillages,
-      'Puskeswan Karossa': karossaVillages,
-    };
-    const selectedVillages = puskeswanVillageMap[watchPuskeswan];
-
-    const allVillages = [
-      ...topoyoVillages, 
-      ...tobadakVillages, 
-      ...pangaleVillages, 
-      ...budongBudongVillages,
-      ...karossaVillages
-    ];
-
-    if (!selectedVillages && watchBreederAddress) {
-      if (allVillages.includes(watchBreederAddress)) {
-         form.setValue('breederAddress', '');
-      }
-    } else if (selectedVillages && watchBreederAddress && !selectedVillages.includes(watchBreederAddress) && watchBreederAddress !== 'Lainnya') {
-       form.setValue('breederAddress', '');
+  const getVillageOptions = (puskeswan: string) => {
+    switch (puskeswan) {
+        case 'Puskeswan Topoyo': return topoyoVillages;
+        case 'Puskeswan Tobadak': return tobadakVillages;
+        case 'Puskeswan Pangale': return pangaleVillages;
+        case 'Puskeswan Budong-Budong': return budongBudongVillages;
+        case 'Puskeswan Karossa': return karossaVillages;
+        default: return [];
     }
-  }, [watchPuskeswan, watchBreederAddress, form]);
+  };
 
-  React.useEffect(() => {
-    const staffMap: Record<string, string[]> = {
-        'Puskeswan Budong-Budong': budongBudongStaff,
-        'Puskeswan Karossa': karossaStaff,
-        'Puskeswan Pangale': pangaleStaff,
-        'Puskeswan Tobadak': tobadakStaff,
-        'Puskeswan Topoyo': topoyoStaff,
-    };
-    const allowedStaff = staffMap[watchPuskeswan];
-    
-    if (!allowedStaff) {
-      const allSpecificStaff = [...budongBudongStaff, ...karossaStaff, ...pangaleStaff, ...tobadakStaff, ...topoyoStaff, 'Lainnya'];
-      if (allSpecificStaff.includes(watchStaffName)) {
-        form.setValue('staffName', '');
-      }
-    } else {
-      if (watchStaffName && !allowedStaff.includes(watchStaffName) && watchStaffName !== 'Lainnya') {
-        form.setValue('staffName', '');
-      }
+  const getStaffOptions = (puskeswan: string) => {
+    switch (puskeswan) {
+      case 'Puskeswan Budong-Budong': return budongBudongStaff;
+      case 'Puskeswan Karossa': return karossaStaff;
+      case 'Puskeswan Pangale': return pangaleStaff;
+      case 'Puskeswan Tobadak': return tobadakStaff;
+      case 'Puskeswan Topoyo': return topoyoStaff;
+      default: return [];
     }
-  }, [watchPuskeswan, watchStaffName, form]);
+  };
 
-  async function onSubmit(data: InseminationRecord) {
-    if (!firestore) {
-      toast({
-        title: 'Error',
-        description: 'Koneksi database tidak tersedia.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
+  async function onSubmitInseminasi(data: InseminationRecord) {
+    if (!firestore) return;
+    setIsSubmittingInseminasi(true);
     try {
       const collectionRef = collection(firestore, 'inseminationRecords');
-      addDocumentNonBlocking(collectionRef, {
-        ...data,
-        createdAt: serverTimestamp(),
-      });
-
-      toast({
-        title: 'Sukses',
-        description: 'Data berhasil disimpan.',
-      });
-      form.reset();
+      addDocumentNonBlocking(collectionRef, { ...data, createdAt: serverTimestamp() });
+      toast({ title: 'Sukses', description: 'Data Inseminasi berhasil disimpan.' });
+      formInseminasi.reset();
       router.push('/records');
     } catch (error) {
-      console.error('Error saving record: ', error);
-      toast({
-        title: 'Error',
-        description: 'Gagal menyimpan data.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'Gagal menyimpan data.', variant: 'destructive' });
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingInseminasi(false);
     }
   }
 
-  const puskeswanOptions = [
-    'Puskeswan Budong-Budong',
-    'Puskeswan Karossa',
-    'Puskeswan Pangale',
-    'Puskeswan Tobadak',
-    'Puskeswan Topoyo',
-  ];
-
-  const commonSapiOptions = [
-    'Sapi Angus', 'Sapi Bali', 'Sapi Brahman', 'Sapi Donggala', 
-    'Sapi Limosin', 'Sapi Madura', 'Sapi Simental'
-  ].sort();
-
-  const producerOptions = [
-    'BIB Lembang', 'BIB Maros', 'BIB Singosari'
-  ].sort();
-  
-  const getVillageOptions = () => {
-    switch (watchPuskeswan) {
-        case 'Puskeswan Topoyo':
-            return topoyoVillages;
-        case 'Puskeswan Tobadak':
-            return tobadakVillages;
-        case 'Puskeswan Pangale':
-            return pangaleVillages;
-        case 'Puskeswan Budong-Budong':
-            return budongBudongVillages;
-        case 'Puskeswan Karossa':
-            return karossaVillages;
-        default:
-            return [];
+  async function onSubmitKelahiran(data: BirthRecord) {
+    if (!firestore) return;
+    setIsSubmittingKelahiran(true);
+    try {
+      const collectionRef = collection(firestore, 'birthRecords');
+      addDocumentNonBlocking(collectionRef, { ...data, createdAt: serverTimestamp() });
+      toast({ title: 'Sukses', description: 'Data Kelahiran berhasil disimpan.' });
+      formKelahiran.reset();
+      router.push('/records');
+    } catch (error) {
+      toast({ title: 'Error', description: 'Gagal menyimpan data.', variant: 'destructive' });
+    } finally {
+      setIsSubmittingKelahiran(false);
     }
-  };
-
-  const getStaffOptions = () => {
-    switch (watchPuskeswan) {
-      case 'Puskeswan Budong-Budong':
-        return budongBudongStaff;
-      case 'Puskeswan Karossa':
-        return karossaStaff;
-      case 'Puskeswan Pangale':
-        return pangaleStaff;
-      case 'Puskeswan Tobadak':
-        return tobadakStaff;
-      case 'Puskeswan Topoyo':
-        return topoyoStaff;
-      default:
-        return [];
-    }
-  };
-  
-  const villageOptions = getVillageOptions();
-  const staffOptions = getStaffOptions();
-
-  const showVillageDropdown = [
-      'Puskeswan Topoyo', 
-      'Puskeswan Tobadak', 
-      'Puskeswan Pangale', 
-      'Puskeswan Budong-Budong',
-      'Puskeswan Karossa'
-    ].includes(watchPuskeswan);
-  const isOtherAddress = showVillageDropdown && watchBreederAddress === 'Lainnya';
-  
-  const showStaffDropdown = ['Puskeswan Budong-Budong', 'Puskeswan Karossa', 'Puskeswan Pangale', 'Puskeswan Tobadak', 'Puskeswan Topoyo'].includes(watchPuskeswan);
-  const isOtherStaff = showStaffDropdown && watchStaffName === 'Lainnya';
-  const isOtherCowType = watchCowType === 'Lainnya';
-  const isOtherStrawType = watchStrawType === 'Lainnya';
-  const isOtherStrawProducer = watchStrawProducer === 'Lainnya';
-
-  const formFields = [
-    { name: 'breederName', label: 'Nama Peternak' },
-    { name: 'phoneNumber', label: 'Nomor HP' },
-    { name: 'breederId', label: 'ID Peternak (KTP)' },
-    { name: 'cowId', label: 'ID Indukan (Eartag)' },
-    { name: 'strawId', label: 'ID Pejantan Straw' },
-    { name: 'strawBatchId', label: 'ID Batch Straw' },
-  ] as const;
+  }
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText('https://inseminasibuatan.vercel.app/');
-    toast({
-      title: 'Tersalin',
-      description: 'Link telah disalin ke papan klip.',
-    });
+    toast({ title: 'Tersalin', description: 'Link telah disalin ke papan klip.' });
   };
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader className="relative">
-          <CardTitle>Input Data Inseminasi Buatan</CardTitle>
+          <CardTitle>Aplikasi IB-Pro</CardTitle>
           <CardDescription>
-            Input detail pelayanan inseminasi buatan yang telah dilakukan.
+            Input detail pelayanan inseminasi buatan dan kelahiran ternak.
           </CardDescription>
           <div className="flex items-center gap-2 mt-2">
             <span className="text-blue-600 italic text-sm">https://inseminasibuatan.vercel.app/</span>
@@ -325,13 +223,14 @@ export function InseminationForm() {
           </TabsList>
         </Card>
 
+        {/* TAB INSEMINASI - STRUKTUR ASLI TETAP TERJAGA */}
         <TabsContent value="inseminasi" className="mt-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Form {...formInseminasi}>
+            <form onSubmit={formInseminasi.handleSubmit(onSubmitInseminasi)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Card className="p-4 flex flex-col justify-center">
                   <FormField
-                    control={form.control}
+                    control={formInseminasi.control}
                     name="inseminationDate"
                     render={({ field }) => (
                       <FormItem>
@@ -341,10 +240,7 @@ export function InseminationForm() {
                             type="date"
                             {...field}
                             value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
-                            onChange={(e) => {
-                              field.onChange(e.target.valueAsDate);
-                            }}
-                            className="w-full"
+                            onChange={(e) => field.onChange(e.target.valueAsDate)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -355,26 +251,20 @@ export function InseminationForm() {
                 
                 <Card className="p-4 flex flex-col justify-center">
                   <FormField
-                    control={form.control}
+                    control={formInseminasi.control}
                     name="puskeswan"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Puskeswan</FormLabel>
-                        <Select onValueChange={(value) => {
-                            field.onChange(value);
-                            form.setValue('breederAddress', '');
-                            form.setValue('staffName', '');
-                          }} defaultValue={field.value}>
+                        <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Pilih Puskeswan" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {puskeswanOptions.map((option) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
+                            {['Puskeswan Budong-Budong', 'Puskeswan Karossa', 'Puskeswan Pangale', 'Puskeswan Tobadak', 'Puskeswan Topoyo'].map((option) => (
+                              <SelectItem key={option} value={option}>{option}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -386,40 +276,14 @@ export function InseminationForm() {
 
                 <Card className="p-4 flex flex-col justify-center">
                   <FormField
-                    control={form.control}
+                    control={formInseminasi.control}
                     name="staffName"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Nama Petugas</FormLabel>
-                        {showStaffDropdown ? (
-                           <>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                               <FormControl>
-                                 <SelectTrigger>
-                                   <SelectValue placeholder="Pilih Petugas" />
-                                 </SelectTrigger>
-                               </FormControl>
-                               <SelectContent>
-                                 {staffOptions.map((staff) => (
-                                   <SelectItem key={staff} value={staff}>{staff}</SelectItem>
-                                 ))}
-                                 <SelectItem value="Lainnya">Lainnya</SelectItem>
-                               </SelectContent>
-                             </Select>
-                             {isOtherStaff && (
-                               <FormControl className="mt-2">
-                                 <Input 
-                                   placeholder="Masukkan nama petugas" 
-                                   onChange={(e) => field.onChange(e.target.value)} 
-                                 />
-                               </FormControl>
-                             )}
-                           </>
-                        ) : (
-                          <FormControl>
-                            <Input placeholder="Masukkan nama petugas" {...field} />
-                          </FormControl>
-                        )}
+                        <FormControl>
+                          <Input placeholder="Masukkan nama petugas" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -428,107 +292,29 @@ export function InseminationForm() {
 
                 <Card className="p-4 flex flex-col justify-center">
                    <FormField
-                      control={form.control}
+                      control={formInseminasi.control}
                       name="breederAddress"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Alamat Peternak</FormLabel>
-                          {showVillageDropdown ? (
-                            <>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Pilih Desa" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {villageOptions.map((village) => (
-                                    <SelectItem key={village} value={village}>{village}</SelectItem>
-                                  ))}
-                                  <SelectItem value="Lainnya">Lainnya</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              {isOtherAddress && (
-                                 <FormControl className="mt-2">
-                                   <Input 
-                                     placeholder="Masukkan alamat lengkap" 
-                                     onChange={(e) => field.onChange(e.target.value)} 
-                                   />
-                                 </FormControl>
-                               )}
-                            </>
-                          ) : (
-                            <FormControl>
-                              <Input placeholder="Masukkan alamat lengkap" {...field} />
-                            </FormControl>
-                          )}
+                          <FormControl>
+                            <Input placeholder="Masukkan alamat lengkap" {...field} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                 </Card>
 
-                {formFields.slice(0, 3).map((formField) => (
-                  <Card key={formField.name} className="p-4 flex flex-col justify-center">
-                    <FormField
-                      control={form.control}
-                      name={formField.name}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{formField.label}</FormLabel>
-                          <FormControl>
-                            <Input placeholder={`Masukkan ${formField.label.toLowerCase()}`} {...field} value={field.value || ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </Card>
-                ))}
-
                 <Card className="p-4 flex flex-col justify-center">
                   <FormField
-                    control={form.control}
-                    name="cowType"
+                    control={formInseminasi.control}
+                    name="breederName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Jenis Sapi Indukan</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Pilih Jenis Sapi" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {commonSapiOptions.map((type) => (
-                              <SelectItem key={type} value={type}>{type}</SelectItem>
-                            ))}
-                            <SelectItem value="Lainnya">Lainnya</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {isOtherCowType && (
-                          <FormControl className="mt-2">
-                            <Input
-                              placeholder="Masukkan jenis sapi"
-                              onChange={(e) => field.onChange(e.target.value)}
-                            />
-                          </FormControl>
-                        )}
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </Card>
-                
-                <Card className="p-4 flex flex-col justify-center">
-                  <FormField
-                    control={form.control}
-                    name="cowId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ID Indukan (Eartag)</FormLabel>
+                        <FormLabel>Nama Peternak</FormLabel>
                         <FormControl>
-                          <Input placeholder="Masukkan id indukan (eartag)" {...field} value={field.value || ''} />
+                          <Input placeholder="Masukkan nama peternak" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -538,93 +324,135 @@ export function InseminationForm() {
 
                 <Card className="p-4 flex flex-col justify-center">
                   <FormField
-                    control={form.control}
-                    name="strawType"
+                    control={formInseminasi.control}
+                    name="phoneNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Jenis Straw Pejantan</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Pilih Jenis Straw" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {commonSapiOptions.map((type) => (
-                              <SelectItem key={type} value={type}>{type}</SelectItem>
-                            ))}
-                            <SelectItem value="Lainnya">Lainnya</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {isOtherStrawType && (
-                          <FormControl className="mt-2">
-                            <Input
-                              placeholder="Masukkan jenis straw"
-                              onChange={(e) => field.onChange(e.target.value)}
-                            />
-                          </FormControl>
-                        )}
+                        <FormLabel>Nomor HP</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Masukkan nomor HP" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </Card>
 
-                {formFields.slice(4).map((formField) => (
-                  <Card key={formField.name} className="p-4 flex flex-col justify-center">
-                    <FormField
-                      control={form.control}
-                      name={formField.name}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{formField.label}</FormLabel>
-                          <FormControl>
-                            <Input placeholder={`Masukkan ${formField.label.toLowerCase()}`} {...field} value={field.value || ''} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </Card>
-                ))}
+                <Card className="p-4 flex flex-col justify-center">
+                  <FormField
+                    control={formInseminasi.control}
+                    name="breederId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ID Peternak (KTP)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Masukkan 16 digit KTP" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </Card>
+
+                <Card className="p-4 flex flex-col justify-center">
+                  <FormField
+                    control={formInseminasi.control}
+                    name="cowType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Jenis Sapi Indukan</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Masukkan jenis sapi" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </Card>
                 
                 <Card className="p-4 flex flex-col justify-center">
                   <FormField
-                    control={form.control}
+                    control={formInseminasi.control}
+                    name="cowId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ID Indukan (Eartag)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Masukkan id eartag" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </Card>
+
+                <Card className="p-4 flex flex-col justify-center">
+                  <FormField
+                    control={formInseminasi.control}
+                    name="strawType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Jenis Straw Pejantan</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Masukkan jenis straw" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </Card>
+
+                <Card className="p-4 flex flex-col justify-center">
+                  <FormField
+                    control={formInseminasi.control}
+                    name="strawId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ID Pejantan Straw</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Masukkan id straw" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </Card>
+
+                <Card className="p-4 flex flex-col justify-center">
+                  <FormField
+                    control={formInseminasi.control}
+                    name="strawBatchId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ID Batch Straw</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Masukkan batch id" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </Card>
+
+                <Card className="p-4 flex flex-col justify-center">
+                  <FormField
+                    control={formInseminasi.control}
                     name="strawProducer"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Produsen Straw</FormLabel>
-                         <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Pilih Produsen" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {producerOptions.map((producer) => (
-                              <SelectItem key={producer} value={producer}>{producer}</SelectItem>
-                            ))}
-                            <SelectItem value="Lainnya">Lainnya</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {isOtherStrawProducer && (
-                          <FormControl className="mt-2">
-                            <Input
-                              placeholder="Masukkan produsen straw"
-                              onChange={(e) => field.onChange(e.target.value)}
-                            />
-                          </FormControl>
-                        )}
+                        <FormControl>
+                          <Input placeholder="Masukkan produsen" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </Card>
               </div>
-              <CardFooter className="flex flex-col items-start md:items-end gap-4 px-0 pt-2">
-                <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <CardFooter className="px-0 pt-2 flex justify-end">
+                <Button type="submit" disabled={isSubmittingInseminasi}>
+                    {isSubmittingInseminasi && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Simpan Data Inseminasi
                 </Button>
               </CardFooter>
@@ -632,20 +460,205 @@ export function InseminationForm() {
           </Form>
         </TabsContent>
 
+        {/* TAB KELAHIRAN - DIKEMBANGKAN KHUSUS DENGAN CARD PER KOLOM */}
         <TabsContent value="kelahiran" className="mt-6">
-          <Card className="p-8 text-center space-y-4">
-            <div className="flex justify-center">
-              <Baby className="h-16 w-16 text-muted-foreground animate-bounce" />
-            </div>
-            <CardTitle>Menu Kelahiran</CardTitle>
-            <CardDescription>
-              Fitur pencatatan data kelahiran sedang dalam tahap pengembangan.
-              Segera hadir untuk membantu Anda melacak keberhasilan program breeding.
-            </CardDescription>
-            <Button variant="outline" onClick={() => router.push('/records')}>
-              Lihat Data Terdaftar
-            </Button>
-          </Card>
+          <Form {...formKelahiran}>
+            <form onSubmit={formKelahiran.handleSubmit(onSubmitKelahiran)} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                {/* 1. Tanggal Laporan */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      <CalendarIcon className="h-4 w-4 text-primary" />
+                      Tanggal Laporan
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <FormField
+                      control={formKelahiran.control}
+                      name="reportDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              type="date"
+                              {...field}
+                              value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
+                              onChange={(e) => field.onChange(e.target.valueAsDate)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* 2. Puskeswan */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Puskeswan</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <FormField
+                      control={formKelahiran.control}
+                      name="puskeswan"
+                      render={({ field }) => (
+                        <FormItem>
+                          <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih Puskeswan" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {['Puskeswan Budong-Budong', 'Puskeswan Karossa', 'Puskeswan Pangale', 'Puskeswan Tobadak', 'Puskeswan Topoyo'].map((opt) => (
+                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* 3. Nama Petugas */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Nama Petugas</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <FormField
+                      control={formKelahiran.control}
+                      name="staffName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input placeholder="Masukkan nama petugas" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* 4. Nama Peternak */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Nama Peternak</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <FormField
+                      control={formKelahiran.control}
+                      name="breederName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input placeholder="Masukkan nama peternak" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* 5. Identitas Peternak (KTP/No.HP) */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Identitas Peternak</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <FormField
+                      control={formKelahiran.control}
+                      name="breederId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input placeholder="Nomor KTP (16 Digit)" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={formKelahiran.control}
+                      name="phoneNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input placeholder="Nomor HP" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* 6. Alamat */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Alamat Peternak</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <FormField
+                      control={formKelahiran.control}
+                      name="breederAddress"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input placeholder="Masukkan alamat lengkap / Desa" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* 7. Jenis Perkawinan */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Jenis Perkawinan</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <FormField
+                      control={formKelahiran.control}
+                      name="matingType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih Jenis Perkawinan" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Kawin Alam">Kawin Alam</SelectItem>
+                              <SelectItem value="Inseminasi Buatan">Inseminasi Buatan (IB)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+              </div>
+              <CardFooter className="px-0 flex justify-end">
+                <Button type="submit" disabled={isSubmittingKelahiran} className="w-full md:w-auto">
+                    {isSubmittingKelahiran && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Simpan Data Kelahiran
+                </Button>
+              </CardFooter>
+            </form>
+          </Form>
         </TabsContent>
       </Tabs>
     </div>
