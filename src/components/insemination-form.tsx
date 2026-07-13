@@ -36,7 +36,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { Loader2, Copy, Baby, Beef, CalendarIcon, Info } from 'lucide-react';
+import { Loader2, Copy, Baby, Beef, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { addDocumentNonBlocking, useFirestore } from '@/firebase';
 import { collection, serverTimestamp } from 'firebase/firestore';
@@ -155,14 +155,14 @@ export function InseminationForm() {
           <TabsList className="grid w-full grid-cols-2 h-12 bg-muted/50">
             <TabsTrigger 
               value="inseminasi" 
-              className="flex items-center gap-2 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-all duration-300"
+              className="flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm flex items-center gap-2"
             >
               <Beef className="h-4 w-4" />
               Inseminasi
             </TabsTrigger>
             <TabsTrigger 
               value="kelahiran" 
-              className="flex items-center gap-2 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-all duration-300"
+              className="flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex items-center gap-2 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-all duration-300"
             >
               <Baby className="h-4 w-4" />
               Kelahiran
@@ -580,14 +580,15 @@ export function InseminationForm() {
                   <>
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Jenis Indukan</CardTitle>
+                        <CardTitle className="text-sm font-medium">Data Indukan</CardTitle>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="space-y-4">
                         <FormField
                           control={formKelahiran.control}
                           name="cowType"
                           render={({ field }) => (
                             <FormItem>
+                              <FormLabel className="text-xs">Jenis Indukan</FormLabel>
                               <FormControl>
                                 <Input placeholder="Masukkan jenis sapi indukan" {...field} />
                               </FormControl>
@@ -595,19 +596,12 @@ export function InseminationForm() {
                             </FormItem>
                           )}
                         />
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">No. Eartag Indukan</CardTitle>
-                      </CardHeader>
-                      <CardContent>
                         <FormField
                           control={formKelahiran.control}
                           name="cowEartag"
                           render={({ field }) => (
                             <FormItem>
+                              <FormLabel className="text-xs">No. Eartag Indukan</FormLabel>
                               <FormControl>
                                 <Input placeholder="Masukkan nomor eartag indukan" {...field} />
                               </FormControl>
@@ -620,14 +614,15 @@ export function InseminationForm() {
 
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Jenis Pejantan</CardTitle>
+                        <CardTitle className="text-sm font-medium">Data Pejantan</CardTitle>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="space-y-4">
                         <FormField
                           control={formKelahiran.control}
                           name="bullType"
                           render={({ field }) => (
                             <FormItem>
+                              <FormLabel className="text-xs">Jenis Pejantan</FormLabel>
                               <FormControl>
                                 <Input placeholder="Masukkan jenis sapi pejantan" {...field} />
                               </FormControl>
@@ -635,19 +630,12 @@ export function InseminationForm() {
                             </FormItem>
                           )}
                         />
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">No. Eartag Pejantan</CardTitle>
-                      </CardHeader>
-                      <CardContent>
                         <FormField
                           control={formKelahiran.control}
                           name="bullEartag"
                           render={({ field }) => (
                             <FormItem>
+                              <FormLabel className="text-xs">No. Eartag Pejantan</FormLabel>
                               <FormControl>
                                 <Input placeholder="Masukkan nomor eartag pejantan" {...field} />
                               </FormControl>
