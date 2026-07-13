@@ -61,6 +61,14 @@ export const BirthRecordSchema = z.object({
     message: 'Identitas peternak (KTP/HP) harus diisi.',
   }),
   matingType: z.string().min(1, { message: 'Jenis perkawinan harus dipilih.' }),
+  // New conditional fields
+  cowType: z.string().optional(),
+  cowEartag: z.string().optional(),
+  bullType: z.string().optional(),
+  bullEartag: z.string().optional(),
+  birthDate: z.date().optional(),
+  childGender: z.string().optional(),
+  childCount: z.string().optional(),
   createdAt: z.any().optional(),
 });
 

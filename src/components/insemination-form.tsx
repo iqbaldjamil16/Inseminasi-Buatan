@@ -36,7 +36,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { Loader2, Copy, Baby, Beef, CalendarIcon } from 'lucide-react';
+import { Loader2, Copy, Baby, Beef, CalendarIcon, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { addDocumentNonBlocking, useFirestore } from '@/firebase';
 import { collection, serverTimestamp } from 'firebase/firestore';
@@ -79,8 +79,16 @@ export function InseminationForm() {
       phoneNumber: '',
       breederId: '',
       matingType: '',
+      cowType: '',
+      cowEartag: '',
+      bullType: '',
+      bullEartag: '',
+      childGender: '',
+      childCount: '1',
     },
   });
+
+  const watchMatingType = formKelahiran.watch('matingType');
 
   async function onSubmitInseminasi(data: InseminationRecord) {
     if (!firestore) return;
@@ -567,6 +575,166 @@ export function InseminationForm() {
                     />
                   </CardContent>
                 </Card>
+
+                {watchMatingType && (
+                  <>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">Jenis Indukan</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <FormField
+                          control={formKelahiran.control}
+                          name="cowType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input placeholder="Masukkan jenis sapi indukan" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">No. Eartag Indukan</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <FormField
+                          control={formKelahiran.control}
+                          name="cowEartag"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input placeholder="Masukkan nomor eartag indukan" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">Jenis Pejantan</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <FormField
+                          control={formKelahiran.control}
+                          name="bullType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input placeholder="Masukkan jenis sapi pejantan" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">No. Eartag Pejantan</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <FormField
+                          control={formKelahiran.control}
+                          name="bullEartag"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input placeholder="Masukkan nomor eartag pejantan" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                          <CalendarIcon className="h-4 w-4 text-primary" />
+                          Tanggal Lahir Anak
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <FormField
+                          control={formKelahiran.control}
+                          name="birthDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  type="date"
+                                  {...field}
+                                  value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
+                                  onChange={(e) => field.onChange(e.target.valueAsDate)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">Jenis Kelamin Anakan</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <FormField
+                          control={formKelahiran.control}
+                          name="childGender"
+                          render={({ field }) => (
+                            <FormItem>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Pilih Jenis Kelamin" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Jantan">Jantan</SelectItem>
+                                  <SelectItem value="Betina">Betina</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">Jumlah Anakan</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <FormField
+                          control={formKelahiran.control}
+                          name="childCount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input type="number" placeholder="1" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
 
               </div>
               <CardFooter className="px-0 flex justify-end">
