@@ -30,7 +30,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, Copy } from 'lucide-react';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import { Loader2, Copy, Baby, Beef } from 'lucide-react';
 import { format } from 'date-fns';
 import { addDocumentNonBlocking, useFirestore } from '@/firebase';
 import { collection, serverTimestamp } from 'firebase/firestore';
@@ -277,329 +283,365 @@ export function InseminationForm() {
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader className="relative">
-            <CardTitle>Input Data Inseminasi Buatan</CardTitle>
-            <CardDescription>
-              Input detail pelayanan inseminasi buatan yang telah dilakukan.
-            </CardDescription>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-blue-600 italic text-sm">https://inseminasibuatan.vercel.app/</span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-black hover:bg-black/10"
-                onClick={handleCopyLink}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="relative">
+          <CardTitle>Input Data Inseminasi Buatan</CardTitle>
+          <CardDescription>
+            Input detail pelayanan inseminasi buatan yang telah dilakukan.
+          </CardDescription>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-blue-600 italic text-sm">https://inseminasibuatan.vercel.app/</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-black hover:bg-black/10"
+              onClick={handleCopyLink}
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
+
+      <Tabs defaultValue="inseminasi" className="w-full">
+        <Card className="p-1">
+          <TabsList className="grid w-full grid-cols-2 h-12">
+            <TabsTrigger value="inseminasi" className="flex items-center gap-2">
+              <Beef className="h-4 w-4" />
+              Inseminasi
+            </TabsTrigger>
+            <TabsTrigger value="kelahiran" className="flex items-center gap-2">
+              <Baby className="h-4 w-4" />
+              Kelahiran
+            </TabsTrigger>
+          </TabsList>
         </Card>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="p-4 flex flex-col justify-center">
-            <FormField
-              control={form.control}
-              name="inseminationDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tanggal IB</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
-                      onChange={(e) => {
-                        field.onChange(e.target.valueAsDate);
-                      }}
-                      className="w-full"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </Card>
-          
-          <Card className="p-4 flex flex-col justify-center">
-            <FormField
-              control={form.control}
-              name="puskeswan"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Puskeswan</FormLabel>
-                  <Select onValueChange={(value) => {
-                      field.onChange(value);
-                      form.setValue('breederAddress', '');
-                      form.setValue('staffName', '');
-                    }} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih Puskeswan" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {puskeswanOptions.map((option) => (
-                        <SelectItem key={option} value={option}>
-                          {option}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </Card>
 
-          <Card className="p-4 flex flex-col justify-center">
-            <FormField
-              control={form.control}
-              name="staffName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nama Petugas</FormLabel>
-                  {showStaffDropdown ? (
-                     <>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                         <FormControl>
-                           <SelectTrigger>
-                             <SelectValue placeholder="Pilih Petugas" />
-                           </SelectTrigger>
-                         </FormControl>
-                         <SelectContent>
-                           {staffOptions.map((staff) => (
-                             <SelectItem key={staff} value={staff}>{staff}</SelectItem>
-                           ))}
-                           <SelectItem value="Lainnya">Lainnya</SelectItem>
-                         </SelectContent>
-                       </Select>
-                       {isOtherStaff && (
-                         <FormControl className="mt-2">
-                           <Input 
-                             placeholder="Masukkan nama petugas" 
-                             onChange={(e) => field.onChange(e.target.value)} 
-                           />
-                         </FormControl>
-                       )}
-                     </>
-                  ) : (
-                    <FormControl>
-                      <Input placeholder="Masukkan nama petugas" {...field} />
-                    </FormControl>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </Card>
-
-          <Card className="p-4 flex flex-col justify-center">
-             <FormField
-                control={form.control}
-                name="breederAddress"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Alamat Peternak</FormLabel>
-                    {showVillageDropdown ? (
-                      <>
-                        <Select onValueChange={field.onChange} value={field.value}>
+        <TabsContent value="inseminasi" className="mt-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <Card className="p-4 flex flex-col justify-center">
+                  <FormField
+                    control={form.control}
+                    name="inseminationDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tanggal IB</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            {...field}
+                            value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsDate);
+                            }}
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </Card>
+                
+                <Card className="p-4 flex flex-col justify-center">
+                  <FormField
+                    control={form.control}
+                    name="puskeswan"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Puskeswan</FormLabel>
+                        <Select onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue('breederAddress', '');
+                            form.setValue('staffName', '');
+                          }} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Pilih Desa" />
+                              <SelectValue placeholder="Pilih Puskeswan" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {villageOptions.map((village) => (
-                              <SelectItem key={village} value={village}>{village}</SelectItem>
+                            {puskeswanOptions.map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </Card>
+
+                <Card className="p-4 flex flex-col justify-center">
+                  <FormField
+                    control={form.control}
+                    name="staffName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nama Petugas</FormLabel>
+                        {showStaffDropdown ? (
+                           <>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                               <FormControl>
+                                 <SelectTrigger>
+                                   <SelectValue placeholder="Pilih Petugas" />
+                                 </SelectTrigger>
+                               </FormControl>
+                               <SelectContent>
+                                 {staffOptions.map((staff) => (
+                                   <SelectItem key={staff} value={staff}>{staff}</SelectItem>
+                                 ))}
+                                 <SelectItem value="Lainnya">Lainnya</SelectItem>
+                               </SelectContent>
+                             </Select>
+                             {isOtherStaff && (
+                               <FormControl className="mt-2">
+                                 <Input 
+                                   placeholder="Masukkan nama petugas" 
+                                   onChange={(e) => field.onChange(e.target.value)} 
+                                 />
+                               </FormControl>
+                             )}
+                           </>
+                        ) : (
+                          <FormControl>
+                            <Input placeholder="Masukkan nama petugas" {...field} />
+                          </FormControl>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </Card>
+
+                <Card className="p-4 flex flex-col justify-center">
+                   <FormField
+                      control={form.control}
+                      name="breederAddress"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Alamat Peternak</FormLabel>
+                          {showVillageDropdown ? (
+                            <>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Pilih Desa" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {villageOptions.map((village) => (
+                                    <SelectItem key={village} value={village}>{village}</SelectItem>
+                                  ))}
+                                  <SelectItem value="Lainnya">Lainnya</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {isOtherAddress && (
+                                 <FormControl className="mt-2">
+                                   <Input 
+                                     placeholder="Masukkan alamat lengkap" 
+                                     onChange={(e) => field.onChange(e.target.value)} 
+                                   />
+                                 </FormControl>
+                               )}
+                            </>
+                          ) : (
+                            <FormControl>
+                              <Input placeholder="Masukkan alamat lengkap" {...field} />
+                            </FormControl>
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                </Card>
+
+                {formFields.slice(0, 3).map((formField) => (
+                  <Card key={formField.name} className="p-4 flex flex-col justify-center">
+                    <FormField
+                      control={form.control}
+                      name={formField.name}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{formField.label}</FormLabel>
+                          <FormControl>
+                            <Input placeholder={`Masukkan ${formField.label.toLowerCase()}`} {...field} value={field.value || ''} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </Card>
+                ))}
+
+                <Card className="p-4 flex flex-col justify-center">
+                  <FormField
+                    control={form.control}
+                    name="cowType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Jenis Sapi Indukan</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih Jenis Sapi" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {commonSapiOptions.map((type) => (
+                              <SelectItem key={type} value={type}>{type}</SelectItem>
                             ))}
                             <SelectItem value="Lainnya">Lainnya</SelectItem>
                           </SelectContent>
                         </Select>
-                        {isOtherAddress && (
-                           <FormControl className="mt-2">
-                             <Input 
-                               placeholder="Masukkan alamat lengkap" 
-                               onChange={(e) => field.onChange(e.target.value)} 
-                             />
-                           </FormControl>
-                         )}
-                      </>
-                    ) : (
-                      <FormControl>
-                        <Input placeholder="Masukkan alamat lengkap" {...field} />
-                      </FormControl>
+                        {isOtherCowType && (
+                          <FormControl className="mt-2">
+                            <Input
+                              placeholder="Masukkan jenis sapi"
+                              onChange={(e) => field.onChange(e.target.value)}
+                            />
+                          </FormControl>
+                        )}
+                        <FormMessage />
+                      </FormItem>
                     )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-          </Card>
+                  />
+                </Card>
+                
+                <Card className="p-4 flex flex-col justify-center">
+                  <FormField
+                    control={form.control}
+                    name="cowId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ID Indukan (Eartag)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Masukkan id indukan (eartag)" {...field} value={field.value || ''} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </Card>
 
-          {formFields.slice(0, 3).map((formField) => (
-            <Card key={formField.name} className="p-4 flex flex-col justify-center">
-              <FormField
-                control={form.control}
-                name={formField.name}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{formField.label}</FormLabel>
-                    <FormControl>
-                      <Input placeholder={`Masukkan ${formField.label.toLowerCase()}`} {...field} value={field.value || ''} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </Card>
-          ))}
+                <Card className="p-4 flex flex-col justify-center">
+                  <FormField
+                    control={form.control}
+                    name="strawType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Jenis Straw Pejantan</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih Jenis Straw" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {commonSapiOptions.map((type) => (
+                              <SelectItem key={type} value={type}>{type}</SelectItem>
+                            ))}
+                            <SelectItem value="Lainnya">Lainnya</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {isOtherStrawType && (
+                          <FormControl className="mt-2">
+                            <Input
+                              placeholder="Masukkan jenis straw"
+                              onChange={(e) => field.onChange(e.target.value)}
+                            />
+                          </FormControl>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </Card>
 
-          <Card className="p-4 flex flex-col justify-center">
-            <FormField
-              control={form.control}
-              name="cowType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Jenis Sapi Indukan</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih Jenis Sapi" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {commonSapiOptions.map((type) => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
-                      <SelectItem value="Lainnya">Lainnya</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {isOtherCowType && (
-                    <FormControl className="mt-2">
-                      <Input
-                        placeholder="Masukkan jenis sapi"
-                        onChange={(e) => field.onChange(e.target.value)}
-                      />
-                    </FormControl>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </Card>
-          
-          <Card className="p-4 flex flex-col justify-center">
-            <FormField
-              control={form.control}
-              name="cowId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ID Indukan (Eartag)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Masukkan id indukan (eartag)" {...field} value={field.value || ''} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </Card>
+                {formFields.slice(4).map((formField) => (
+                  <Card key={formField.name} className="p-4 flex flex-col justify-center">
+                    <FormField
+                      control={form.control}
+                      name={formField.name}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{formField.label}</FormLabel>
+                          <FormControl>
+                            <Input placeholder={`Masukkan ${formField.label.toLowerCase()}`} {...field} value={field.value || ''} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </Card>
+                ))}
+                
+                <Card className="p-4 flex flex-col justify-center">
+                  <FormField
+                    control={form.control}
+                    name="strawProducer"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Produsen Straw</FormLabel>
+                         <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih Produsen" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {producerOptions.map((producer) => (
+                              <SelectItem key={producer} value={producer}>{producer}</SelectItem>
+                            ))}
+                            <SelectItem value="Lainnya">Lainnya</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {isOtherStrawProducer && (
+                          <FormControl className="mt-2">
+                            <Input
+                              placeholder="Masukkan produsen straw"
+                              onChange={(e) => field.onChange(e.target.value)}
+                            />
+                          </FormControl>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </Card>
+              </div>
+              <CardFooter className="flex flex-col items-start md:items-end gap-4 px-0 pt-2">
+                <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Simpan Data Inseminasi
+                </Button>
+              </CardFooter>
+            </form>
+          </Form>
+        </TabsContent>
 
-          <Card className="p-4 flex flex-col justify-center">
-            <FormField
-              control={form.control}
-              name="strawType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Jenis Straw Pejantan</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih Jenis Straw" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {commonSapiOptions.map((type) => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
-                      <SelectItem value="Lainnya">Lainnya</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {isOtherStrawType && (
-                    <FormControl className="mt-2">
-                      <Input
-                        placeholder="Masukkan jenis straw"
-                        onChange={(e) => field.onChange(e.target.value)}
-                      />
-                    </FormControl>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <TabsContent value="kelahiran" className="mt-6">
+          <Card className="p-8 text-center space-y-4">
+            <div className="flex justify-center">
+              <Baby className="h-16 w-16 text-muted-foreground animate-bounce" />
+            </div>
+            <CardTitle>Menu Kelahiran</CardTitle>
+            <CardDescription>
+              Fitur pencatatan data kelahiran sedang dalam tahap pengembangan.
+              Segera hadir untuk membantu Anda melacak keberhasilan program breeding.
+            </CardDescription>
+            <Button variant="outline" onClick={() => router.push('/records')}>
+              Lihat Data Terdaftar
+            </Button>
           </Card>
-
-          {formFields.slice(4).map((formField) => (
-            <Card key={formField.name} className="p-4 flex flex-col justify-center">
-              <FormField
-                control={form.control}
-                name={formField.name}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{formField.label}</FormLabel>
-                    <FormControl>
-                      <Input placeholder={`Masukkan ${formField.label.toLowerCase()}`} {...field} value={field.value || ''} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </Card>
-          ))}
-          
-          <Card className="p-4 flex flex-col justify-center">
-            <FormField
-              control={form.control}
-              name="strawProducer"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Produsen Straw</FormLabel>
-                   <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih Produsen" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {producerOptions.map((producer) => (
-                        <SelectItem key={producer} value={producer}>{producer}</SelectItem>
-                      ))}
-                      <SelectItem value="Lainnya">Lainnya</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {isOtherStrawProducer && (
-                    <FormControl className="mt-2">
-                      <Input
-                        placeholder="Masukkan produsen straw"
-                        onChange={(e) => field.onChange(e.target.value)}
-                      />
-                    </FormControl>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </Card>
-        </div>
-        <CardFooter className="flex flex-col items-start md:items-end gap-4 px-0 pt-2">
-          <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Simpan Data
-          </Button>
-        </CardFooter>
-      </form>
-    </Form>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
