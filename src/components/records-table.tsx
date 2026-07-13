@@ -4,7 +4,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { InseminationRecordSchema, type InseminationRecord } from '@/lib/types';
+import { InseminationRecordSchema, type InseminationRecord, type BirthRecord } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -23,7 +23,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Download, Search, Trash2, FilePenLine, ChevronDown, Loader2, BarChart, Table as TableIcon } from 'lucide-react';
+import { Download, Search, Trash2, FilePenLine, ChevronDown, Loader2, BarChart, Table as TableIcon, FileSpreadsheet } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Select,
@@ -111,15 +111,6 @@ const puskeswanOptions = [
   'Puskeswan Topoyo',
 ];
 
-const commonSapiOptions = [
-  'Sapi Angus', 'Sapi Bali', 'Sapi Brahman', 'Sapi Donggala', 
-  'Sapi Limosin', 'Sapi Madura', 'Sapi Simental'
-].sort();
-
-const producerOptions = [
-  'BIB Lembang', 'BIB Maros', 'BIB Singosari'
-].sort();
-
 export function RecordsTable() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
@@ -135,12 +126,19 @@ export function RecordsTable() {
   const { user } = useUser();
   const { toast } = useToast();
 
+  // Insemination Records
   const recordsQuery = useMemoFirebase(
     () => (firestore && user ? collection(firestore, 'inseminationRecords') : null),
     [firestore, user]
   );
-  
-  const { data: recordsData, isLoading } = useCollection<InseminationRecord>(recordsQuery);
+  const { data: recordsData, isLoading: isLoadingInsemination } = useCollection<InseminationRecord>(recordsQuery);
+
+  // Birth Records
+  const birthRecordsQuery = useMemoFirebase(
+    () => (firestore && user ? collection(firestore, 'birthRecords') : null),
+    [firestore, user]
+  );
+  const { data: birthRecordsData, isLoading: isLoadingBirth } = useCollection<BirthRecord>(birthRecordsQuery);
 
   const parsedRecords = useMemo(() => {
     if (!recordsData) return [];
@@ -149,6 +147,15 @@ export function RecordsTable() {
       inseminationDate: (record.inseminationDate as any)?.toDate ? (record.inseminationDate as any).toDate() : new Date(record.inseminationDate)
     })).filter(r => r.inseminationDate && !isNaN(r.inseminationDate.getTime()));
   }, [recordsData]);
+
+  const parsedBirthRecords = useMemo(() => {
+    if (!birthRecordsData) return [];
+    return birthRecordsData.map(record => ({
+      ...record,
+      reportDate: (record.reportDate as any)?.toDate ? (record.reportDate as any).toDate() : new Date(record.reportDate),
+      birthDate: record.birthDate ? ((record.birthDate as any)?.toDate ? (record.birthDate as any).toDate() : new Date(record.birthDate)) : undefined
+    })).filter(r => r.reportDate && !isNaN(r.reportDate.getTime()));
+  }, [birthRecordsData]);
 
   const form = useForm<InseminationRecord>({
     resolver: zodResolver(InseminationRecordSchema),
@@ -168,78 +175,59 @@ export function RecordsTable() {
       parsedRecords.forEach(record => {
         if (record.staffName) allUniqueStaff.add(record.staffName);
       });
+      parsedBirthRecords.forEach(record => {
+        if (record.staffName) allUniqueStaff.add(record.staffName);
+      });
       return Array.from(allUniqueStaff).sort();
     }
     
     return staffMap[selectedPuskeswan] || [];
-  }, [selectedPuskeswan, parsedRecords]);
+  }, [selectedPuskeswan, parsedRecords, parsedBirthRecords]);
 
-  useEffect(() => {
-    if (selectedPuskeswan !== 'all' && selectedStaff !== 'all') {
-      if (!staffFilterOptions.includes(selectedStaff)) {
-        setSelectedStaff('all');
-      }
-    }
-  }, [selectedPuskeswan, staffFilterOptions, selectedStaff]);
-
-  const watchPuskeswan = form.watch('puskeswan');
-  const watchStaffName = form.watch('staffName');
-  const watchBreederAddress = form.watch('breederAddress');
-  const watchCowType = form.watch('cowType');
-  const watchStrawType = form.watch('strawType');
-  const watchStrawProducer = form.watch('strawProducer');
-
-  useEffect(() => {
-    if (editingRecord) {
-      form.reset({
-        ...editingRecord,
-        inseminationDate: editingRecord.inseminationDate ? (editingRecord.inseminationDate as any).toDate ? (editingRecord.inseminationDate as any).toDate() : new Date(editingRecord.inseminationDate) : new Date(),
-      });
-    }
-  }, [editingRecord, form]);
-
-  const handleUpdate = async (data: InseminationRecord) => {
-    if (!firestore || !editingRecord?.id) return;
-    setIsSaving(true);
-    
-    const docRef = doc(firestore, 'inseminationRecords', editingRecord.id);
-    updateDocumentNonBlocking(docRef, data);
-    
-    toast({
-      title: 'Sukses',
-      description: 'Data berhasil diperbarui.',
+  const filteredInseminationData = useMemo(() => {
+    if (!parsedRecords) return [];
+    let records = parsedRecords.sort((a, b) => b.inseminationDate.getTime() - a.inseminationDate.getTime());
+    return records.filter(record => {
+      const recordDate = record.inseminationDate;
+      const isMonthMatch = selectedMonth === 'all' || recordDate.getMonth().toString() === selectedMonth;
+      const isYearMatch = selectedYear === 'all' || recordDate.getFullYear().toString() === selectedYear;
+      const isPuskeswanMatch = selectedPuskeswan === 'all' || record.puskeswan === selectedPuskeswan;
+      const isStaffMatch = selectedStaff === 'all' || record.staffName === selectedStaff;
+      const searchTermLower = searchTerm.toLowerCase();
+      const isSearchMatch = searchTerm === '' ||
+        (record.breederName && record.breederName.toLowerCase().includes(searchTermLower)) ||
+        (record.breederId && record.breederId.includes(searchTerm)) ||
+        (record.cowId && record.cowId.toLowerCase().includes(searchTermLower)) ||
+        (format(recordDate, 'dd/MM/yyyy').includes(searchTermLower));
+      return isMonthMatch && isYearMatch && isPuskeswanMatch && isStaffMatch && isSearchMatch;
     });
+  }, [searchTerm, parsedRecords, selectedMonth, selectedYear, selectedPuskeswan, selectedStaff]);
 
-    setIsSaving(false);
-    setEditingRecord(null);
-  };
-
-  const handleDelete = async () => {
-    if (!firestore || !deletingRecord?.id) return;
-    
-    const docRef = doc(firestore, 'inseminationRecords', deletingRecord.id);
-    deleteDocumentNonBlocking(docRef);
-
-    toast({
-      title: 'Sukses',
-      description: 'Data berhasil dihapus.',
-      variant: 'destructive'
+  const filteredBirthData = useMemo(() => {
+    if (!parsedBirthRecords) return [];
+    let records = parsedBirthRecords.sort((a, b) => b.reportDate.getTime() - a.reportDate.getTime());
+    return records.filter(record => {
+      const recordDate = record.reportDate;
+      const isMonthMatch = selectedMonth === 'all' || recordDate.getMonth().toString() === selectedMonth;
+      const isYearMatch = selectedYear === 'all' || recordDate.getFullYear().toString() === selectedYear;
+      const isPuskeswanMatch = selectedPuskeswan === 'all' || record.puskeswan === selectedPuskeswan;
+      const isStaffMatch = selectedStaff === 'all' || record.staffName === selectedStaff;
+      const searchTermLower = searchTerm.toLowerCase();
+      const isSearchMatch = searchTerm === '' ||
+        (record.breederName && record.breederName.toLowerCase().includes(searchTermLower)) ||
+        (record.breederId && record.breederId.includes(searchTerm)) ||
+        (record.cowEartag && record.cowEartag.toLowerCase().includes(searchTermLower)) ||
+        (format(recordDate, 'dd/MM/yyyy').includes(searchTermLower));
+      return isMonthMatch && isYearMatch && isPuskeswanMatch && isStaffMatch && isSearchMatch;
     });
-    
-    setDeletingRecord(null);
-  };
+  }, [searchTerm, parsedBirthRecords, selectedMonth, selectedYear, selectedPuskeswan, selectedStaff]);
   
   const availableYears = useMemo(() => {
-    if (!parsedRecords) return [];
     const years = new Set<string>();
-    parsedRecords.forEach(record => {
-      const date = record.inseminationDate;
-      if (date && !isNaN(date.getFullYear())) {
-         years.add(date.getFullYear().toString());
-      }
-    });
+    parsedRecords.forEach(r => years.add(r.inseminationDate.getFullYear().toString()));
+    parsedBirthRecords.forEach(r => years.add(r.reportDate.getFullYear().toString()));
     return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
-  }, [parsedRecords]);
+  }, [parsedRecords, parsedBirthRecords]);
 
   const months = [
     { value: '0', label: 'Januari' }, { value: '1', label: 'Februari' }, { value: '2', label: 'Maret' },
@@ -248,89 +236,65 @@ export function RecordsTable() {
     { value: '9', label: 'Oktober' }, { value: '10', label: 'November' }, { value: '11', label: 'Desember' }
   ];
 
-  const filteredData = useMemo(() => {
-    if (!parsedRecords) return [];
-
-    let records = parsedRecords.sort((a, b) => b.inseminationDate.getTime() - a.inseminationDate.getTime());
-
-    return records.filter(record => {
-      const recordDate = record.inseminationDate;
-      const isMonthMatch = selectedMonth === 'all' || recordDate.getMonth().toString() === selectedMonth;
-      const isYearMatch = selectedYear === 'all' || recordDate.getFullYear().toString() === selectedYear;
-      const isPuskeswanMatch = selectedPuskeswan === 'all' || record.puskeswan === selectedPuskeswan;
-      const isStaffMatch = selectedStaff === 'all' || record.staffName === selectedStaff;
-
-      const searchTermLower = searchTerm.toLowerCase();
-      const isSearchMatch =
-        searchTerm === '' ||
-        (record.breederName && record.breederName.toLowerCase().includes(searchTermLower)) ||
-        (record.breederId && record.breederId.includes(searchTerm)) ||
-        (record.cowId && record.cowId.toLowerCase().includes(searchTermLower)) ||
-        (format(recordDate, 'dd/MM/yyyy').includes(searchTermLower));
-
-      return isMonthMatch && isYearMatch && isPuskeswanMatch && isStaffMatch && isSearchMatch;
-    });
-  }, [searchTerm, parsedRecords, selectedMonth, selectedYear, selectedPuskeswan, selectedStaff]);
-  
-  const exportToExcel = () => {
-    if (filteredData.length === 0) return;
-
-    const wb = XLSX.utils.book_new();
-
-    const groups: Record<string, InseminationRecord[]> = {};
-    if (selectedStaff !== 'all') {
-      const name = filteredData[0]?.staffName || 'Laporan';
-      groups[name] = filteredData;
-    } else {
-      filteredData.forEach(r => {
-        const name = r.staffName || 'Lainnya';
-        if (!groups[name]) groups[name] = [];
-        groups[name].push(r);
-      });
+  const exportInseminationToExcel = () => {
+    if (filteredInseminationData.length === 0) {
+        toast({ title: 'Info', description: 'Tidak ada data inseminasi untuk diekspor.' });
+        return;
     }
-
-    Object.entries(groups).forEach(([staffName, records]) => {
-      const headers = [
-          'No.', 'Tanggal', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
-          'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
-      ];
-
-      const dataRows = records.map((record, index) => [
-        index + 1,
-        record.inseminationDate ? format(new Date(record.inseminationDate), 'dd-MM-yyyy') : '',
-        record.puskeswan,
-        record.breederName,
-        record.breederAddress,
-        record.phoneNumber,
-        record.breederId,
-        record.cowType,
-        record.cowId,
-        record.strawType,
-        record.strawId,
-        record.strawBatchId,
-        record.strawProducer,
-      ]);
-
-      const wsData = [
-        [], // Row 1
-        [], // Row 2
-        [staffName], // Row 3
-        ['', ...headers], // Row 4
-        ...dataRows.map(row => ['', ...row]) // Row 5+
-      ];
-
-      const ws = XLSX.utils.aoa_to_sheet(wsData);
-      const wscols = [
-        { wch: 20 }, // Kolom A
-        { wch: 5 },  // Kolom B (No.)
-        ...headers.slice(1).map(() => ({ wch: 15 })) 
-      ];
-      ws['!cols'] = wscols;
-
-      XLSX.utils.book_append_sheet(wb, ws, staffName.substring(0, 31));
-    });
-
+    const wb = XLSX.utils.book_new();
+    const headers = [
+        'No.', 'Tanggal IB', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
+        'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
+    ];
+    const dataRows = filteredInseminationData.map((record, index) => [
+      index + 1,
+      format(record.inseminationDate, 'dd-MM-yyyy'),
+      record.puskeswan,
+      record.breederName,
+      record.breederAddress,
+      record.phoneNumber,
+      record.breederId,
+      record.cowType,
+      record.cowId,
+      record.strawType,
+      record.strawId,
+      record.strawBatchId,
+      record.strawProducer,
+    ]);
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+    XLSX.utils.book_append_sheet(wb, ws, "Inseminasi");
     XLSX.writeFile(wb, `Laporan_IB_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
+  const exportBirthToExcel = () => {
+    if (filteredBirthData.length === 0) {
+        toast({ title: 'Info', description: 'Tidak ada data kelahiran untuk diekspor.' });
+        return;
+    }
+    const wb = XLSX.utils.book_new();
+    const headers = [
+        'No.', 'Tgl Laporan', 'Puskeswan', 'Nama Peternak', 'Identitas Peternak', 'Alamat', 
+        'Jenis Perkawinan', 'Jenis Indukan', 'Eartag Indukan', 'Jenis Pejantan', 'Eartag Pejantan',
+        'Tgl Lahir Anak', 'Data Anakan'
+    ];
+    const dataRows = filteredBirthData.map((record, index) => [
+      index + 1,
+      format(record.reportDate, 'dd-MM-yyyy'),
+      record.puskeswan,
+      record.breederName,
+      record.breederId,
+      record.breederAddress,
+      record.matingType,
+      record.cowType || '-',
+      record.cowEartag || '-',
+      record.bullType || '-',
+      record.bullEartag || '-',
+      record.birthDate ? format(record.birthDate, 'dd-MM-yyyy') : '-',
+      record.children.map(c => `${c.gender}(${c.count})`).join(', ')
+    ]);
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+    XLSX.utils.book_append_sheet(wb, ws, "Kelahiran");
+    XLSX.writeFile(wb, `Laporan_Kelahiran_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const RecordDetailRow = ({ label, value }: { label: string, value: string | number | undefined }) => (
@@ -344,52 +308,60 @@ export function RecordsTable() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Catatan Inseminasi Buatan</CardTitle>
+          <CardTitle>Catatan Inseminasi & Kelahiran</CardTitle>
           <CardDescription>
-            Lihat, cari, ekspor, dan analisis semua data inseminasi yang telah tercatat.
+            Lihat, cari, ekspor, dan analisis semua data pelayanan ternak yang telah tercatat.
           </CardDescription>
         </CardHeader>
       </Card>
 
       <Card>
         <CardHeader>
-            <CardTitle className="text-lg">Data Laporan IB</CardTitle>
+            <CardTitle className="text-lg">Filter & Ekspor Laporan</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-            <div className="space-y-2">
-                <Label htmlFor="filter-puskeswan">Puskeswan</Label>
-                <Select onValueChange={setSelectedPuskeswan} value={selectedPuskeswan}>
-                    <SelectTrigger id="filter-puskeswan">
-                        <SelectValue placeholder="Semua Puskeswan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Semua Puskeswan</SelectItem>
-                        {puskeswanOptions.map(option => (
-                            <SelectItem key={option} value={option}>{option}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-            
-            <div className="space-y-2">
-                <Label htmlFor="filter-staff">Nama Petugas</Label>
-                <Select onValueChange={setSelectedStaff} value={selectedStaff}>
-                    <SelectTrigger id="filter-staff">
-                        <SelectValue placeholder="Semua Petugas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Semua Petugas</SelectItem>
-                        {staffFilterOptions.map(staff => (
-                            <SelectItem key={staff} value={staff}>{staff}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="filter-puskeswan">Puskeswan</Label>
+                    <Select onValueChange={setSelectedPuskeswan} value={selectedPuskeswan}>
+                        <SelectTrigger id="filter-puskeswan">
+                            <SelectValue placeholder="Semua Puskeswan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Puskeswan</SelectItem>
+                            {puskeswanOptions.map(option => (
+                                <SelectItem key={option} value={option}>{option}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                
+                <div className="space-y-2">
+                    <Label htmlFor="filter-staff">Nama Petugas</Label>
+                    <Select onValueChange={setSelectedStaff} value={selectedStaff}>
+                        <SelectTrigger id="filter-staff">
+                            <SelectValue placeholder="Semua Petugas" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Petugas</SelectItem>
+                            {staffFilterOptions.map(staff => (
+                                <SelectItem key={staff} value={staff}>{staff}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
-            <Button onClick={exportToExcel} disabled={isLoading || filteredData.length === 0} className="w-full">
-                <Download className="mr-2 h-4 w-4" />
-                Unduh Laporan
-            </Button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <Button variant="outline" onClick={exportInseminationToExcel} disabled={isLoadingInsemination || filteredInseminationData.length === 0} className="w-full border-primary text-primary hover:bg-primary/10">
+                    <FileSpreadsheet className="mr-2 h-4 w-4" />
+                    Unduh Laporan Inseminasi
+                </Button>
+                <Button variant="outline" onClick={exportBirthToExcel} disabled={isLoadingBirth || filteredBirthData.length === 0} className="w-full border-accent text-accent-foreground hover:bg-accent/10">
+                    <FileSpreadsheet className="mr-2 h-4 w-4" />
+                    Unduh Laporan Kelahiran
+                </Button>
+            </div>
         </CardContent>
       </Card>
       
@@ -440,7 +412,7 @@ export function RecordsTable() {
                 className="flex-1 sm:flex-none"
               >
                 <TableIcon className="mr-2 h-4 w-4" />
-                Tabel
+                Tabel Inseminasi
               </Button>
               <Button 
                 variant={view === 'stats' ? 'secondary' : 'ghost'} 
@@ -454,18 +426,18 @@ export function RecordsTable() {
             </div>
 
             {view === 'table' ? (
-              isLoading ? <Skeleton className="h-48 w-full" /> : (
+              isLoadingInsemination ? <Skeleton className="h-48 w-full" /> : (
                 <div className="w-full">
                   <div className="md:hidden">
                     <Accordion type="single" collapsible className="w-full space-y-4">
-                      {filteredData.map((record) => (
+                      {filteredInseminationData.map((record) => (
                         <AccordionItem value={record.id!} key={record.id!} className="border rounded-lg bg-card">
                           <AccordionTrigger className="p-4 hover:no-underline">
                             <div className="flex items-center justify-between w-full">
                                 <div className="flex-1 text-left">
                                     <div className="font-bold">{record.staffName}</div>
                                     <div className="text-sm text-muted-foreground">{record.puskeswan}</div>
-                                    <div className="text-xs text-muted-foreground pt-1">{record.inseminationDate ? format(new Date(record.inseminationDate), 'dd/MM/yyyy') : 'N/A'}</div>
+                                    <div className="text-xs text-muted-foreground pt-1">{format(record.inseminationDate, 'dd/MM/yyyy')}</div>
                                 </div>
                             </div>
                           </AccordionTrigger>
@@ -474,10 +446,6 @@ export function RecordsTable() {
                               <RecordDetailRow label="Nama Peternak" value={record.breederName} />
                               <RecordDetailRow label="ID Sapi" value={record.cowId} />
                               <RecordDetailRow label="Pejantan" value={record.strawId} />
-                              <div className="flex justify-end gap-2 pt-4">
-                                  <Button variant="outline" size="icon" onClick={() => setEditingRecord(record)}><FilePenLine className="h-4 w-4" /></Button>
-                                  <Button variant="destructive" size="icon" onClick={() => setDeletingRecord(record)}><Trash2 className="h-4 w-4" /></Button>
-                              </div>
                             </div>
                           </AccordionContent>
                         </AccordionItem>
@@ -494,13 +462,12 @@ export function RecordsTable() {
                               <TableHead>ID Sapi</TableHead>
                               <TableHead>Pejantan</TableHead>
                               <TableHead>Petugas</TableHead>
-                              <TableHead className="text-right">Aksi</TableHead>
                           </TableRow>
                       </TableHeader>
                       <TableBody>
-                          {filteredData.map((record) => (
+                          {filteredInseminationData.map((record) => (
                               <TableRow key={record.id}>
-                                  <TableCell>{record.inseminationDate ? format(new Date(record.inseminationDate), 'dd/MM/yyyy') : 'N/A'}</TableCell>
+                                  <TableCell>{format(record.inseminationDate, 'dd/MM/yyyy')}</TableCell>
                                   <TableCell>
                                       <div className="font-medium">{record.breederName}</div>
                                       <div className="text-sm text-muted-foreground">{record.breederId}</div>
@@ -508,16 +475,6 @@ export function RecordsTable() {
                                   <TableCell>{record.cowId}</TableCell>
                                   <TableCell>{record.strawType}</TableCell>
                                   <TableCell>{record.staffName}</TableCell>
-                                  <TableCell className="text-right">
-                                      <div className="flex items-center justify-end gap-2">
-                                          <Button variant="ghost" size="icon" onClick={() => setEditingRecord(record)}>
-                                              <FilePenLine className="h-4 w-4" />
-                                          </Button>
-                                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeletingRecord(record)}>
-                                              <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                      </div>
-                                  </TableCell>
                               </TableRow>
                           ))}
                       </TableBody>
@@ -534,4 +491,3 @@ export function RecordsTable() {
     </div>
   );
 }
-
