@@ -162,7 +162,7 @@ export function InseminationForm() {
             </TabsTrigger>
             <TabsTrigger 
               value="kelahiran" 
-              className="flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex items-center gap-2 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-all duration-300"
+              className="flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex items-center gap-2 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-all duration-300"
             >
               <Baby className="h-4 w-4" />
               Kelahiran
@@ -676,14 +676,15 @@ export function InseminationForm() {
 
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Jenis Kelamin Anakan</CardTitle>
+                        <CardTitle className="text-sm font-medium">Data Anakan</CardTitle>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="space-y-4">
                         <FormField
                           control={formKelahiran.control}
                           name="childGender"
                           render={({ field }) => (
                             <FormItem>
+                              <FormLabel className="text-xs">Jenis Kelamin</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
@@ -699,19 +700,12 @@ export function InseminationForm() {
                             </FormItem>
                           )}
                         />
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Jumlah Anakan</CardTitle>
-                      </CardHeader>
-                      <CardContent>
                         <FormField
                           control={formKelahiran.control}
                           name="childCount"
                           render={({ field }) => (
                             <FormItem>
+                              <FormLabel className="text-xs">Jumlah Anakan</FormLabel>
                               <FormControl>
                                 <Input type="number" placeholder="1" {...field} />
                               </FormControl>
