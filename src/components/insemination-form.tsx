@@ -685,8 +685,7 @@ export function InseminationForm() {
                       <CardContent className="space-y-6 relative">
                         {fields.map((field, index) => (
                            <div key={field.id} className="space-y-4 pt-4 first:pt-0 border-t first:border-t-0 relative">
-                               <div className="flex justify-between items-center mb-2">
-                                   <span className="text-xs font-semibold text-muted-foreground">Anakan Ke-{index + 1}</span>
+                               <div className="flex justify-end items-center mb-2">
                                    {fields.length > 1 && (
                                        <Button 
                                            type="button" 
