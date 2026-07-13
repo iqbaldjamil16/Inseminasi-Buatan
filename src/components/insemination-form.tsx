@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import React, { useRef } from 'react';
+import { useForm, useFieldArray, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { InseminationRecordSchema, type InseminationRecord, BirthRecordSchema, type BirthRecord } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -36,7 +36,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { Loader2, Copy, Baby, Beef, CalendarIcon, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Copy, Baby, Beef, CalendarIcon, Plus, Trash2, Image as ImageIcon, Upload, Link as LinkIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { addDocumentNonBlocking, useFirestore } from '@/firebase';
 import { collection, serverTimestamp } from 'firebase/firestore';
@@ -65,6 +65,8 @@ export function InseminationForm() {
       strawId: '',
       strawBatchId: '',
       strawProducer: '',
+      servicePhoto: '',
+      googleDriveLink: '',
     },
   });
 
@@ -87,6 +89,8 @@ export function InseminationForm() {
       strawBatchId: '',
       strawProducer: '',
       children: [{ gender: '', count: '1' }],
+      servicePhoto: '',
+      googleDriveLink: '',
     },
   });
 
@@ -403,8 +407,11 @@ export function InseminationForm() {
                   />
                 </Card>
               </div>
+
+              <PhotoUploadCard form={formInseminasi} />
+
               <CardFooter className="px-0 pt-2 flex justify-end">
-                <Button type="submit" disabled={isSubmittingInseminasi}>
+                <Button type="submit" disabled={isSubmittingInseminasi} className="w-full md:w-auto">
                     {isSubmittingInseminasi && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Simpan Data Inseminasi
                 </Button>
@@ -803,6 +810,9 @@ export function InseminationForm() {
                 )}
 
               </div>
+
+              <PhotoUploadCard form={formKelahiran} />
+
               <CardFooter className="px-0 flex justify-end">
                 <Button type="submit" disabled={isSubmittingKelahiran} className="w-full md:w-auto">
                     {isSubmittingKelahiran && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -814,5 +824,105 @@ export function InseminationForm() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function PhotoUploadCard({ form }: { form: UseFormReturn<any> }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  const photo = form.watch('servicePhoto');
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 500 * 1024) {
+      toast({
+        title: 'File Terlalu Besar',
+        description: 'Ukuran foto maksimal adalah 500KB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      form.setValue('servicePhoto', reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <Card className="p-4 md:p-6 overflow-hidden">
+      <div className="space-y-6">
+        <div className="space-y-3">
+          <div className="flex items-center gap-1">
+            <span className="text-sm font-semibold">Upload Foto Pelayanan</span>
+            <span className="text-xs text-muted-foreground italic">(Opsional, Maks 500KB)</span>
+          </div>
+          <div className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center bg-muted/20 space-y-4">
+            {photo ? (
+               <div className="relative group">
+                 <img src={photo} className="max-h-48 rounded shadow-sm border" alt="Pratinjau Foto" />
+                 <Button 
+                    type="button"
+                    variant="destructive" 
+                    size="icon" 
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => form.setValue('servicePhoto', '')}
+                 >
+                    <Trash2 className="h-3 w-3" />
+                 </Button>
+               </div>
+            ) : (
+               <div className="flex flex-col items-center space-y-2 text-center">
+                 <ImageIcon className="h-14 w-14 text-muted-foreground/50" />
+                 <p className="text-sm text-muted-foreground">Belum ada foto yang diunggah</p>
+               </div>
+            )}
+            <Button 
+                variant="secondary" 
+                size="sm" 
+                type="button" 
+                onClick={() => fileInputRef.current?.click()}
+                className="bg-white hover:bg-muted shadow-sm border"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Pilih Foto
+            </Button>
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                hidden 
+                accept="image/*" 
+                onChange={handleFileChange} 
+            />
+          </div>
+        </div>
+
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center gap-2">
+            <LinkIcon className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-semibold">Link Google Drive</span>
+            <span className="text-xs text-muted-foreground italic">(Opsional)</span>
+          </div>
+          <FormField
+            control={form.control}
+            name="googleDriveLink"
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <FormControl>
+                  <Input 
+                    placeholder="https://drive.google.com/..." 
+                    className="bg-muted/30 border-muted-foreground/20 italic text-muted-foreground placeholder:text-muted-foreground/50"
+                    {...field} 
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+      </div>
+    </Card>
   );
 }
