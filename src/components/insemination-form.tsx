@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { InseminationRecordSchema, type InseminationRecord, BirthRecordSchema, type BirthRecord } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -36,7 +36,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { Loader2, Copy, Baby, Beef, CalendarIcon } from 'lucide-react';
+import { Loader2, Copy, Baby, Beef, CalendarIcon, Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { addDocumentNonBlocking, useFirestore } from '@/firebase';
 import { collection, serverTimestamp } from 'firebase/firestore';
@@ -83,9 +83,13 @@ export function InseminationForm() {
       cowEartag: '',
       bullType: '',
       bullEartag: '',
-      childGender: '',
-      childCount: '1',
+      children: [{ gender: '', count: '1' }],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: formKelahiran.control,
+    name: "children",
   });
 
   const watchMatingType = formKelahiran.watch('matingType');
@@ -675,44 +679,73 @@ export function InseminationForm() {
                     </Card>
 
                     <Card>
-                      <CardHeader className="pb-2">
+                      <CardHeader className="pb-2 flex flex-row items-center justify-between">
                         <CardTitle className="text-sm font-medium">Data Anakan</CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-4">
-                        <FormField
-                          control={formKelahiran.control}
-                          name="childGender"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">Jenis Kelamin</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Pilih Jenis Kelamin" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="Jantan">Jantan</SelectItem>
-                                  <SelectItem value="Betina">Betina</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={formKelahiran.control}
-                          name="childCount"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">Jumlah Anakan</FormLabel>
-                              <FormControl>
-                                <Input type="number" placeholder="1" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <CardContent className="space-y-6 relative">
+                        {fields.map((field, index) => (
+                           <div key={field.id} className="space-y-4 pt-4 first:pt-0 border-t first:border-t-0 relative">
+                               <div className="flex justify-between items-center mb-2">
+                                   <span className="text-xs font-semibold text-muted-foreground">Anakan Ke-{index + 1}</span>
+                                   {fields.length > 1 && (
+                                       <Button 
+                                           type="button" 
+                                           variant="ghost" 
+                                           size="icon" 
+                                           className="h-6 w-6 text-destructive"
+                                           onClick={() => remove(index)}
+                                       >
+                                           <Trash2 className="h-4 w-4" />
+                                       </Button>
+                                   )}
+                               </div>
+                               <FormField
+                                  control={formKelahiran.control}
+                                  name={`children.${index}.gender`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs">Jenis Kelamin</FormLabel>
+                                      <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                          <SelectTrigger>
+                                            <SelectValue placeholder="Pilih Jenis Kelamin" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="Jantan">Jantan</SelectItem>
+                                          <SelectItem value="Betina">Betina</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={formKelahiran.control}
+                                  name={`children.${index}.count`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs">Jumlah Anakan</FormLabel>
+                                      <FormControl>
+                                        <Input type="number" placeholder="1" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                           </div>
+                        ))}
+                        <div className="flex justify-end pt-2">
+                             <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="rounded-full h-8 w-8 shadow-sm hover:bg-accent"
+                                onClick={() => append({ gender: '', count: '1' })}
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   </>
