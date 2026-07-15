@@ -318,9 +318,9 @@ export function RecordsTable() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <Button variant="outline" onClick={exportInseminationToExcel} disabled={isLoadingInsemination || filteredInseminationData.length === 0} className="w-full border-primary text-primary hover:bg-primary/10">
+                <Button onClick={exportInseminationToExcel} disabled={isLoadingInsemination || filteredInseminationData.length === 0} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                     <FileSpreadsheet className="mr-2 h-4 w-4" />
-                    Unduh Laporan Inseminasi
+                    Unduh Data Inseminasi
                 </Button>
                 <Button variant="outline" onClick={exportBirthToExcel} disabled={isLoadingBirth || filteredBirthData.length === 0} className="w-full border-accent text-accent-foreground hover:bg-accent/10">
                     <FileSpreadsheet className="mr-2 h-4 w-4" />
