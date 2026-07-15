@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
@@ -97,11 +96,11 @@ const karossaVillages = [
   'Desa Tasoskko', 'Desa Kambunong', 'Mora IV', 'UPT Lara III'
 ].sort();
 
-const budongBudongStaff = ['Anshari Saleh', 'Hadi', 'Rahman'].sort();
-const karossaStaff = ['Asari Rasyid', 'drh. Stephani', 'Basuki', 'Hasaruddin'].sort();
-const pangaleStaff = ['drh. Ketut Elok', 'Mansyur', 'Jawaril', 'Sugeng'].sort();
-const tobadakStaff = ['Endang', 'drh. Ishak'].sort();
-const topoyoStaff = ['drh. Iqbal Djamil', 'Alfons B', 'Haslim'].sort();
+const budongBudongStaff = ['Anshari Saleh', 'Hadi', 'Nur Fauzi', 'Rahman', 'Suprapto', 'Tadi Sole', 'Lainnya'].sort();
+const karossaStaff = ['Asri Rasyid', 'Basuki', 'drh. Stephani', 'Hasaruddin', 'Nasaruddin', 'Adiatman', 'Surianca', 'Lainnya'].sort();
+const pangaleStaff = ['Andri', 'drh. Ketut Elok', 'Jarwo', 'Jawaril', 'Kamarudin', 'Kamaruddin', 'Mansyur', 'Sugeng', 'Lainnya'].sort();
+const tobadakStaff = ['Aser M', 'drh. Ishak', 'Endang', 'Feliks S', 'Jupry', 'Madalena', 'Lainnya'].sort();
+const topoyoStaff = ['Alfons B', 'drh. Iqbal Djamil', 'Fitriani', 'Haslim', 'Rizky A', 'Lainnya'].sort();
 
 const puskeswanOptions = [
   'Puskeswan Budong-Budong',
@@ -166,7 +165,7 @@ export function RecordsTable() {
       'Puskeswan Budong-Budong': budongBudongStaff,
       'Puskeswan Karossa': karossaStaff,
       'Puskeswan Pangale': pangaleStaff,
-      'Puskeswan Tobadak': ['Endang', 'drh. Ishak'],
+      'Puskeswan Tobadak': tobadakStaff,
       'Puskeswan Topoyo': topoyoStaff,
     };
 
