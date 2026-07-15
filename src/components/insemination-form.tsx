@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useForm, useFieldArray, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { InseminationRecordSchema, type InseminationRecord, BirthRecordSchema, type BirthRecord } from '@/lib/types';
@@ -41,6 +41,67 @@ import { format } from 'date-fns';
 import { addDocumentNonBlocking, useFirestore } from '@/firebase';
 import { collection, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
+
+// Master Data
+const topoyoVillages = [
+  'Desa Bambamanurug', 'Desa Budong-Budong', 'Desa Kabubu', 'Desa Pangalloang', 
+  'Desa Paraili', 'Desa Salule\'bo', 'Desa Salupangkang', 'Desa Salupangkang IV', 
+  'Desa Sinabatta', 'Desa Tabolang', 'Desa Tangkau', 'Desa Tappilina', 
+  'Desa Topoyo', 'Desa Tumbu', 'Desa Waeputeh'
+].sort();
+
+const tobadakVillages = [
+  'Desa Bambadaru', 'Desa Batu Parigi', 'Desa Mahahe', 'Desa Polongaan', 
+  'Desa Saluadak', 'Desa Sejati', 'Desa Sulobaja', 'Desa Tobadak'
+].sort();
+
+const pangaleVillages = [
+    'Desa Kombiling', 'Desa Kuo', 'Desa Lamba-lamba', 'Desa Lemo-Lemo', 
+    'Desa Pangale', 'Desa Polo Camba', 'Desa Polo Lereng', 'Desa Polo Pangale', 
+    'Desa Sartanamaju'
+].sort();
+
+const budongBudongVillages = [
+  'Desa Babana', 'Desa Barakkang', 'Desa Bojo', 'Desa Kire', 'Desa Lembah Hada', 
+  'Desa Lumu', 'Desa Pasapa', 'Desa Potantanakayyang', 'Desa Salogatta', 
+  'Desa Salumanurung', 'Desa Tinali'
+].sort();
+
+const karossaVillages = [
+  'Desa Benggaulu', 'Desa Kadaila', 'Desa Karossa', 'Desa Kayucalla', 'Desa Lara',
+  'Desa Lembah Hopo', 'Desa Salubiro', 'Desa Sanjango', 'Desa Sukamaju', 
+  'Desa Tasoskko', 'Desa Kambunong', 'Mora IV', 'UPT Lara III'
+].sort();
+
+const budongBudongStaff = ['Anshari Saleh', 'Hadi', 'Rahman'].sort();
+const karossaStaff = ['Asari Rasyid', 'drh. Stephani', 'Basuki', 'Hasaruddin'].sort();
+const pangaleStaff = ['drh. Ketut Elok', 'Mansyur', 'Jawaril', 'Sugeng'].sort();
+const tobadakStaff = ['Endang', 'drh. Ishak'].sort();
+const topoyoStaff = ['drh. Iqbal Djamil', 'Alfons B', 'Haslim'].sort();
+
+const puskeswanOptions = [
+  'Puskeswan Budong-Budong',
+  'Puskeswan Karossa',
+  'Puskeswan Pangale',
+  'Puskeswan Tobadak',
+  'Puskeswan Topoyo',
+];
+
+const staffMap: Record<string, string[]> = {
+  'Puskeswan Budong-Budong': budongBudongStaff,
+  'Puskeswan Karossa': karossaStaff,
+  'Puskeswan Pangale': pangaleStaff,
+  'Puskeswan Tobadak': tobadakStaff,
+  'Puskeswan Topoyo': topoyoStaff,
+};
+
+const villageMap: Record<string, string[]> = {
+  'Puskeswan Budong-Budong': budongBudongVillages,
+  'Puskeswan Karossa': karossaVillages,
+  'Puskeswan Pangale': pangaleVillages,
+  'Puskeswan Tobadak': tobadakVillages,
+  'Puskeswan Topoyo': topoyoVillages,
+};
 
 export function InseminationForm() {
   const [isSubmittingInseminasi, setIsSubmittingInseminasi] = React.useState(false);
@@ -99,7 +160,15 @@ export function InseminationForm() {
     name: "children",
   });
 
+  const watchPuskeswanInseminasi = formInseminasi.watch('puskeswan');
+  const watchPuskeswanKelahiran = formKelahiran.watch('puskeswan');
   const watchMatingType = formKelahiran.watch('matingType');
+
+  const staffOptionsInseminasi = useMemo(() => staffMap[watchPuskeswanInseminasi] || [], [watchPuskeswanInseminasi]);
+  const villageOptionsInseminasi = useMemo(() => villageMap[watchPuskeswanInseminasi] || [], [watchPuskeswanInseminasi]);
+  
+  const staffOptionsKelahiran = useMemo(() => staffMap[watchPuskeswanKelahiran] || [], [watchPuskeswanKelahiran]);
+  const villageOptionsKelahiran = useMemo(() => villageMap[watchPuskeswanKelahiran] || [], [watchPuskeswanKelahiran]);
 
   async function onSubmitInseminasi(data: InseminationRecord) {
     if (!firestore) return;
@@ -213,14 +282,18 @@ export function InseminationForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Puskeswan</FormLabel>
-                        <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
+                        <Select onValueChange={(value) => {
+                          field.onChange(value);
+                          formInseminasi.setValue('staffName', '');
+                          formInseminasi.setValue('breederAddress', '');
+                        }} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Pilih Puskeswan" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {['Puskeswan Budong-Budong', 'Puskeswan Karossa', 'Puskeswan Pangale', 'Puskeswan Tobadak', 'Puskeswan Topoyo'].map((option) => (
+                            {puskeswanOptions.map((option) => (
                               <SelectItem key={option} value={option}>{option}</SelectItem>
                             ))}
                           </SelectContent>
@@ -238,9 +311,18 @@ export function InseminationForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Nama Petugas</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Masukkan nama petugas" {...field} />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!watchPuskeswanInseminasi}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih Petugas" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {staffOptionsInseminasi.map((staff) => (
+                              <SelectItem key={staff} value={staff}>{staff}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -253,10 +335,19 @@ export function InseminationForm() {
                       name="breederAddress"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Alamat Peternak</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Masukkan alamat lengkap" {...field} />
-                          </FormControl>
+                          <FormLabel>Alamat Peternak (Desa)</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={!watchPuskeswanInseminasi}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih Desa" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {villageOptionsInseminasi.map((village) => (
+                                <SelectItem key={village} value={village}>{village}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -463,14 +554,18 @@ export function InseminationForm() {
                       name="puskeswan"
                       render={({ field }) => (
                         <FormItem>
-                          <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
+                          <Select onValueChange={(value) => {
+                            field.onChange(value);
+                            formKelahiran.setValue('staffName', '');
+                            formKelahiran.setValue('breederAddress', '');
+                          }} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Pilih Puskeswan" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {['Puskeswan Budong-Budong', 'Puskeswan Karossa', 'Puskeswan Pangale', 'Puskeswan Tobadak', 'Puskeswan Topoyo'].map((opt) => (
+                              {puskeswanOptions.map((opt) => (
                                 <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                               ))}
                             </SelectContent>
@@ -492,9 +587,18 @@ export function InseminationForm() {
                       name="staffName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormControl>
-                            <Input placeholder="Masukkan nama petugas" {...field} />
-                          </FormControl>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={!watchPuskeswanKelahiran}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih Petugas" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {staffOptionsKelahiran.map((staff) => (
+                                <SelectItem key={staff} value={staff}>{staff}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -544,7 +648,7 @@ export function InseminationForm() {
 
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Alamat Peternak</CardTitle>
+                    <CardTitle className="text-sm font-medium">Alamat Peternak (Desa)</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <FormField
@@ -552,9 +656,18 @@ export function InseminationForm() {
                       name="breederAddress"
                       render={({ field }) => (
                         <FormItem>
-                          <FormControl>
-                            <Input placeholder="Masukkan alamat lengkap / Desa" {...field} />
-                          </FormControl>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={!watchPuskeswanKelahiran}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih Desa" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {villageOptionsKelahiran.map((village) => (
+                                <SelectItem key={village} value={village}>{village}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
