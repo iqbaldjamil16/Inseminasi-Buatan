@@ -376,7 +376,7 @@ export function RecordsTable() {
                 className="flex-1 sm:flex-none"
               >
                 <TableIcon className="mr-2 h-4 w-4" />
-                Tabel saja
+                Tabel
               </Button>
               <Button 
                 variant={view === 'stats' ? 'secondary' : 'ghost'} 
