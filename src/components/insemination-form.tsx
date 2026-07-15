@@ -231,24 +231,26 @@ export function InseminationForm() {
       </Card>
 
       <Tabs defaultValue="inseminasi" className="w-full">
-        <Card className="p-1">
-          <TabsList className="grid w-full grid-cols-2 h-12 bg-muted/50">
+        <TabsList className="grid w-full grid-cols-2 gap-4 h-auto bg-transparent p-0 mb-6">
+          <Card className="border shadow-sm overflow-hidden bg-card">
             <TabsTrigger 
               value="inseminasi" 
-              className="flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-bold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm"
+              className="w-full h-12 flex items-center justify-center whitespace-nowrap text-sm font-bold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-none rounded-none"
             >
               Inseminasi
             </TabsTrigger>
+          </Card>
+          <Card className="border shadow-sm overflow-hidden bg-card">
             <TabsTrigger 
               value="kelahiran" 
-              className="flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-bold ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-all duration-300"
+              className="w-full h-12 flex items-center justify-center whitespace-nowrap text-sm font-bold ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-none rounded-none transition-all duration-300"
             >
               Kelahiran
             </TabsTrigger>
-          </TabsList>
-        </Card>
+          </Card>
+        </TabsList>
 
-        <TabsContent value="inseminasi" className="mt-6">
+        <TabsContent value="inseminasi" className="mt-0">
           <Form {...formInseminasi}>
             <form onSubmit={formInseminasi.handleSubmit(onSubmitInseminasi)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -509,7 +511,7 @@ export function InseminationForm() {
           </Form>
         </TabsContent>
 
-        <TabsContent value="kelahiran" className="mt-6">
+        <TabsContent value="kelahiran" className="mt-0">
           <Form {...formKelahiran}>
             <form onSubmit={formKelahiran.handleSubmit(onSubmitKelahiran)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
