@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import type { InseminationRecord } from '@/lib/types';
+import type { InseminationRecord, BirthRecord } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -24,6 +24,7 @@ import { MamujuTengahMap } from './mamuju-tengah-map';
 
 interface StatisticsViewProps {
   records: InseminationRecord[];
+  birthRecords: BirthRecord[];
 }
 
 const chartConfig = {
@@ -74,8 +75,9 @@ const CustomBarChart = ({ data, title, description, total }: { data: any[], titl
   );
 
 
-export function StatisticsView({ records }: StatisticsViewProps) {
-  const totalRecords = records.length;
+export function StatisticsView({ records, birthRecords }: StatisticsViewProps) {
+  const totalInsemination = records.length;
+  const totalBirths = birthRecords.length;
 
   const sortedMonthlyStats = useMemo(() => {
     if (!records || records.length === 0) return [];
@@ -98,6 +100,28 @@ export function StatisticsView({ records }: StatisticsViewProps) {
             count: item.count,
         }));
   }, [records]);
+
+  const sortedBirthMonthlyStats = useMemo(() => {
+    if (!birthRecords || birthRecords.length === 0) return [];
+    const stats: { [key: string]: { count: number, date: Date } } = {};
+    birthRecords.forEach((record) => {
+        const recordDate = record.reportDate;
+        if (recordDate && !isNaN(recordDate.getTime())) {
+            const monthKey = format(recordDate, 'yyyy-MM');
+            if (!stats[monthKey]) {
+                stats[monthKey] = { count: 0, date: new Date(recordDate.getFullYear(), recordDate.getMonth(), 1) };
+            }
+            stats[monthKey].count++;
+        }
+    });
+
+    return Object.values(stats)
+        .sort((a, b) => b.date.getTime() - a.date.getTime())
+        .map(item => ({
+            name: format(item.date, 'MMMM yyyy', { locale: id }),
+            count: item.count,
+        }));
+  }, [birthRecords]);
 
 
   const staffStats = useMemo(() => {
@@ -164,7 +188,7 @@ export function StatisticsView({ records }: StatisticsViewProps) {
   }, [puskeswanStats]);
 
   const puskeswanPieData = useMemo(() => {
-    if (totalRecords === 0) return [];
+    if (totalInsemination === 0) return [];
     return puskeswanStats.map(stat => {
         const key = stat.name.replace(/[\s-]/g, '_');
         return {
@@ -174,9 +198,9 @@ export function StatisticsView({ records }: StatisticsViewProps) {
             fill: `var(--color-${key})`,
         };
     });
-  }, [puskeswanStats, totalRecords]);
+  }, [puskeswanStats, totalInsemination]);
 
-  if (records.length === 0) {
+  if (records.length === 0 && birthRecords.length === 0) {
     return (
         <Card>
             <CardHeader>
@@ -199,15 +223,17 @@ export function StatisticsView({ records }: StatisticsViewProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <MamujuTengahMap data={puskeswanStats} total={totalRecords} />
+            <MamujuTengahMap data={puskeswanStats} total={totalInsemination} />
           </CardContent>
         </Card>
 
-        <CustomBarChart data={sortedMonthlyStats} total={totalRecords} title="Statistik Bulanan" description="Total data inseminasi yang diinput setiap bulan." />
+        <CustomBarChart data={sortedMonthlyStats} total={totalInsemination} title="Statistik Bulanan" description="Total data inseminasi yang diinput setiap bulan." />
         
-        <CustomBarChart data={strawTypeStats} total={totalRecords} title="Statistik Jenis Straw Pejantan" description="Distribusi penggunaan jenis straw pejantan secara keseluruhan." />
+        <CustomBarChart data={sortedBirthMonthlyStats} total={totalBirths} title="Statistik Bulanan Kelahiran" description="Total data laporan kelahiran yang diinput setiap bulan." />
 
-        <CustomBarChart data={staffStats} total={totalRecords} title="Statistik per Petugas" description="Total data yang diinput oleh masing-masing petugas." />
+        <CustomBarChart data={strawTypeStats} total={totalInsemination} title="Statistik Jenis Straw Pejantan" description="Distribusi penggunaan jenis straw pejantan secara keseluruhan." />
+
+        <CustomBarChart data={staffStats} total={totalInsemination} title="Statistik per Petugas" description="Total data yang diinput oleh masing-masing petugas." />
         
         <Card>
             <CardHeader>

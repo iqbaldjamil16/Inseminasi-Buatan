@@ -470,7 +470,7 @@ export function RecordsTable() {
                 </div>
               )
             ) : (
-              <StatisticsView records={parsedRecords} />
+              <StatisticsView records={parsedRecords} birthRecords={parsedBirthRecords} />
             )}
           </div>
         </CardContent>
