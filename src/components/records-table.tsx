@@ -38,6 +38,7 @@ import { useToast } from '@/hooks/use-toast';
 import { StatisticsView } from './statistics-view';
 import * as XLSX from 'xlsx';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 // Master Data Definitions
 const budongBudongStaff = ['Anshari Saleh', 'Hadi', 'Nur Fauzi', 'Rahman', 'Suprapto', 'Tadi Sole', 'Lainnya'].sort();
@@ -400,7 +401,13 @@ export function RecordsTable() {
                             <div className="flex items-center justify-between w-full">
                                 <div className="flex-1 text-left">
                                     <div className="flex items-center gap-2">
-                                        <Badge variant={record.type === 'Inseminasi' ? 'default' : 'secondary'} className="text-[10px] h-4 px-1">
+                                        <Badge 
+                                          variant={record.type === 'Inseminasi' ? 'default' : 'secondary'} 
+                                          className={cn(
+                                            "text-[10px] h-4 px-1 border-transparent",
+                                            record.type === 'Kelahiran' && "bg-accent text-accent-foreground hover:bg-accent/80"
+                                          )}
+                                        >
                                             {record.type}
                                         </Badge>
                                         <div className="font-bold">{record.staff}</div>
@@ -438,7 +445,12 @@ export function RecordsTable() {
                           {combinedRecords.map((record) => (
                               <TableRow key={record.id}>
                                   <TableCell>
-                                    <Badge variant={record.type === 'Inseminasi' ? 'default' : 'secondary'}>
+                                    <Badge 
+                                      variant={record.type === 'Inseminasi' ? 'default' : 'secondary'}
+                                      className={cn(
+                                        record.type === 'Kelahiran' && "bg-accent text-accent-foreground hover:bg-accent/80 border-transparent"
+                                      )}
+                                    >
                                         {record.type}
                                     </Badge>
                                   </TableCell>
