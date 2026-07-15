@@ -174,6 +174,18 @@ export function StatisticsView({ records, birthRecords }: StatisticsViewProps) {
     });
     return stats;
   }, [records]);
+
+  const birthsByPuskeswanStats = useMemo(() => {
+    if (!birthRecords || birthRecords.length === 0) return {};
+    const stats: Record<string, Record<string, number>> = {};
+    birthRecords.forEach((record) => {
+      if (record.puskeswan && record.matingType) {
+        if (!stats[record.puskeswan]) stats[record.puskeswan] = {};
+        stats[record.puskeswan][record.matingType] = (stats[record.puskeswan][record.matingType] || 0) + 1;
+      }
+    });
+    return stats;
+  }, [birthRecords]);
   
   const puskeswanChartConfig = useMemo(() => {
     const config: ChartConfig = {};
@@ -282,6 +294,30 @@ export function StatisticsView({ records, birthRecords }: StatisticsViewProps) {
                 </CardHeader>
                 <CardContent className="p-4 pt-0 space-y-2">
                   {Object.entries(types).sort((a,b) => b[1] - a[1]).map(([type, count]) => (
+                    <div key={type} className="flex justify-between items-center text-sm border-b border-muted last:border-0 pb-1">
+                      <span className="text-muted-foreground">{type}</span>
+                      <span className="font-semibold">{count}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Data Kelahiran Per Puskeswan</CardTitle>
+            <CardDescription>Detail jenis perkawinan pada laporan kelahiran di tiap-tiap Puskeswan.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(birthsByPuskeswanStats).map(([puskeswan, matingTypes]) => (
+              <Card key={puskeswan} className="bg-muted/30 border-accent/20">
+                <CardHeader className="p-4">
+                  <CardTitle className="text-base font-bold text-accent-foreground">{puskeswan}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0 space-y-2">
+                  {Object.entries(matingTypes).sort((a,b) => b[1] - a[1]).map(([type, count]) => (
                     <div key={type} className="flex justify-between items-center text-sm border-b border-muted last:border-0 pb-1">
                       <span className="text-muted-foreground">{type}</span>
                       <span className="font-semibold">{count}</span>
