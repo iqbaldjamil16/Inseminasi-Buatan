@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { InseminationRecordSchema, type InseminationRecord, type BirthRecord } from '@/lib/types';
@@ -18,11 +18,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Download, Search, Trash2, FilePenLine, ChevronDown, Loader2, BarChart, Table as TableIcon, FileSpreadsheet } from 'lucide-react';
+import { Search, BarChart, Table as TableIcon, FileSpreadsheet } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Select,
@@ -31,71 +31,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { useCollection, useFirestore, useMemoFirebase, useUser, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
+import { collection } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { StatisticsView } from './statistics-view';
 import * as XLSX from 'xlsx';
+import { Badge } from '@/components/ui/badge';
 
 // Master Data Definitions
-const topoyoVillages = [
-  'Desa Bambamanurug', 'Desa Budong-Budong', 'Desa Kabubu', 'Desa Pangalloang', 
-  'Desa Paraili', 'Desa Salule\'bo', 'Desa Salupangkang', 'Desa Salupangkang IV', 
-  'Desa Sinabatta', 'Desa Tabolang', 'Desa Tangkau', 'Desa Tappilina', 
-  'Desa Topoyo', 'Desa Tumbu', 'Desa Waeputeh'
-].sort();
-
-const tobadakVillages = [
-  'Desa Bambadaru', 'Desa Batu Parigi', 'Desa Mahahe', 'Desa Polongaan', 
-  'Desa Saluadak', 'Desa Sejati', 'Desa Sulobaja', 'Desa Tobadak'
-].sort();
-
-const pangaleVillages = [
-    'Desa Kombiling', 'Desa Kuo', 'Desa Lamba-lamba', 'Desa Lemo-Lemo', 
-    'Desa Pangale', 'Desa Polo Camba', 'Desa Polo Lereng', 'Desa Polo Pangale', 
-    'Desa Sartanamaju'
-].sort();
-
-const budongBudongVillages = [
-  'Desa Babana', 'Desa Barakkang', 'Desa Bojo', 'Desa Kire', 'Desa Lembah Hada', 
-  'Desa Lumu', 'Desa Pasapa', 'Desa Potantanakayyang', 'Desa Salogatta', 
-  'Desa Salumanurung', 'Desa Tinali'
-].sort();
-
-const karossaVillages = [
-  'Desa Benggaulu', 'Desa Kadaila', 'Desa Karossa', 'Desa Kayucalla', 'Desa Lara',
-  'Desah Lembah Hopo', 'Desa Salubiro', 'Desa Sanjango', 'Desa Sukamaju', 
-  'Desa Tasoskko', 'Desa Kambunong', 'Mora IV', 'UPT Lara III'
-].sort();
-
 const budongBudongStaff = ['Anshari Saleh', 'Hadi', 'Nur Fauzi', 'Rahman', 'Suprapto', 'Tadi Sole', 'Lainnya'].sort();
 const karossaStaff = ['Asri Rasyid', 'Basuki', 'drh. Stephani', 'Hasaruddin', 'Nasaruddin', 'Adiatman', 'Surianca', 'Lainnya'].sort();
 const pangaleStaff = ['Andri', 'drh. Ketut Elok', 'Jarwo', 'Jawaril', 'Kamarudin', 'Kamaruddin', 'Mansyur', 'Sugeng', 'Lainnya'].sort();
@@ -116,9 +60,6 @@ export function RecordsTable() {
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [selectedPuskeswan, setSelectedPuskeswan] = useState<string>('all');
   const [selectedStaff, setSelectedStaff] = useState<string>('all');
-  const [editingRecord, setEditingRecord] = useState<InseminationRecord | null>(null);
-  const [deletingRecord, setDeletingRecord] = useState<InseminationRecord | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
   const [view, setView] = useState<'table' | 'stats'>('table');
 
   const firestore = useFirestore();
@@ -155,10 +96,6 @@ export function RecordsTable() {
       birthDate: record.birthDate ? ((record.birthDate as any)?.toDate ? (record.birthDate as any).toDate() : new Date(record.birthDate)) : undefined
     })).filter(r => r.reportDate && !isNaN(r.reportDate.getTime()));
   }, [birthRecordsData]);
-
-  const form = useForm<InseminationRecord>({
-    resolver: zodResolver(InseminationRecordSchema),
-  });
 
   const staffFilterOptions = useMemo(() => {
     const staffMap: Record<string, string[]> = {
@@ -221,6 +158,34 @@ export function RecordsTable() {
     });
   }, [searchTerm, parsedBirthRecords, selectedMonth, selectedYear, selectedPuskeswan, selectedStaff]);
   
+  const combinedRecords = useMemo(() => {
+    const inseminasi = filteredInseminationData.map(r => ({
+      id: r.id,
+      date: r.inseminationDate,
+      type: 'Inseminasi' as const,
+      breeder: r.breederName,
+      breederId: r.breederId,
+      staff: r.staffName,
+      puskeswan: r.puskeswan,
+      mainInfo: `Eartag: ${r.cowId}`,
+      subInfo: `Straw: ${r.strawType}`
+    }));
+
+    const kelahiran = filteredBirthData.map(r => ({
+      id: r.id,
+      date: r.reportDate,
+      type: 'Kelahiran' as const,
+      breeder: r.breederName,
+      breederId: r.breederId,
+      staff: r.staffName,
+      puskeswan: r.puskeswan,
+      mainInfo: r.matingType,
+      subInfo: r.children.map(c => `${c.gender}(${c.count})`).join(', ')
+    }));
+
+    return [...inseminasi, ...kelahiran].sort((a, b) => b.date.getTime() - a.date.getTime());
+  }, [filteredInseminationData, filteredBirthData]);
+
   const availableYears = useMemo(() => {
     const years = new Set<string>();
     parsedRecords.forEach(r => years.add(r.inseminationDate.getFullYear().toString()));
@@ -411,7 +376,7 @@ export function RecordsTable() {
                 className="flex-1 sm:flex-none"
               >
                 <TableIcon className="mr-2 h-4 w-4" />
-                Tabel Inseminasi
+                Tabel saja
               </Button>
               <Button 
                 variant={view === 'stats' ? 'secondary' : 'ghost'} 
@@ -425,26 +390,31 @@ export function RecordsTable() {
             </div>
 
             {view === 'table' ? (
-              isLoadingInsemination ? <Skeleton className="h-48 w-full" /> : (
+              (isLoadingInsemination || isLoadingBirth) ? <Skeleton className="h-48 w-full" /> : (
                 <div className="w-full">
                   <div className="md:hidden">
                     <Accordion type="single" collapsible className="w-full space-y-4">
-                      {filteredInseminationData.map((record) => (
+                      {combinedRecords.map((record) => (
                         <AccordionItem value={record.id!} key={record.id!} className="border rounded-lg bg-card">
                           <AccordionTrigger className="p-4 hover:no-underline">
                             <div className="flex items-center justify-between w-full">
                                 <div className="flex-1 text-left">
-                                    <div className="font-bold">{record.staffName}</div>
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant={record.type === 'Inseminasi' ? 'default' : 'secondary'} className="text-[10px] h-4 px-1">
+                                            {record.type}
+                                        </Badge>
+                                        <div className="font-bold">{record.staff}</div>
+                                    </div>
                                     <div className="text-sm text-muted-foreground">{record.puskeswan}</div>
-                                    <div className="text-xs text-muted-foreground pt-1">{format(record.inseminationDate, 'dd/MM/yyyy')}</div>
+                                    <div className="text-xs text-muted-foreground pt-1">{format(record.date, 'dd/MM/yyyy')}</div>
                                 </div>
                             </div>
                           </AccordionTrigger>
                           <AccordionContent className="p-4 pt-0">
                             <div className="space-y-2 border-t pt-4">
-                              <RecordDetailRow label="Nama Peternak" value={record.breederName} />
-                              <RecordDetailRow label="ID Sapi" value={record.cowId} />
-                              <RecordDetailRow label="Pejantan" value={record.strawId} />
+                              <RecordDetailRow label="Nama Peternak" value={record.breeder} />
+                              <RecordDetailRow label="Info Utama" value={record.mainInfo} />
+                              <RecordDetailRow label="Detail" value={record.subInfo} />
                             </div>
                           </AccordionContent>
                         </AccordionItem>
@@ -456,24 +426,30 @@ export function RecordsTable() {
                       <Table>
                       <TableHeader>
                           <TableRow>
+                              <TableHead>Tipe</TableHead>
                               <TableHead>Tanggal</TableHead>
                               <TableHead>Peternak</TableHead>
-                              <TableHead>ID Sapi</TableHead>
-                              <TableHead>Pejantan</TableHead>
+                              <TableHead>Info Utama</TableHead>
+                              <TableHead>Detail</TableHead>
                               <TableHead>Petugas</TableHead>
                           </TableRow>
                       </TableHeader>
                       <TableBody>
-                          {filteredInseminationData.map((record) => (
+                          {combinedRecords.map((record) => (
                               <TableRow key={record.id}>
-                                  <TableCell>{format(record.inseminationDate, 'dd/MM/yyyy')}</TableCell>
                                   <TableCell>
-                                      <div className="font-medium">{record.breederName}</div>
+                                    <Badge variant={record.type === 'Inseminasi' ? 'default' : 'secondary'}>
+                                        {record.type}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell>{format(record.date, 'dd/MM/yyyy')}</TableCell>
+                                  <TableCell>
+                                      <div className="font-medium">{record.breeder}</div>
                                       <div className="text-sm text-muted-foreground">{record.breederId}</div>
                                   </TableCell>
-                                  <TableCell>{record.cowId}</TableCell>
-                                  <TableCell>{record.strawType}</TableCell>
-                                  <TableCell>{record.staffName}</TableCell>
+                                  <TableCell>{record.mainInfo}</TableCell>
+                                  <TableCell>{record.subInfo}</TableCell>
+                                  <TableCell>{record.staff}</TableCell>
                               </TableRow>
                           ))}
                       </TableBody>
