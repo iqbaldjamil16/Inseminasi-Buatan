@@ -40,7 +40,7 @@ const sidebarNavItems = [
   { href: '/summary', icon: Sparkles, label: 'Ringkasan AI' },
 ];
 
-const headerNavItem = { href: '/records', icon: BookCopy, label: 'Data IB' };
+const headerNavItem = { href: '/records', icon: BookCopy, label: 'Data Lap.' };
 
 function NavContent() {
   const pathname = usePathname();
