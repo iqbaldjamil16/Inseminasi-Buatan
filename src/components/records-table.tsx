@@ -322,9 +322,9 @@ export function RecordsTable() {
                     <FileSpreadsheet className="mr-2 h-4 w-4" />
                     Unduh Data Inseminasi
                 </Button>
-                <Button variant="outline" onClick={exportBirthToExcel} disabled={isLoadingBirth || filteredBirthData.length === 0} className="w-full border-accent text-accent-foreground hover:bg-accent/10">
+                <Button onClick={exportBirthToExcel} disabled={isLoadingBirth || filteredBirthData.length === 0} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
                     <FileSpreadsheet className="mr-2 h-4 w-4" />
-                    Unduh Laporan Kelahiran
+                    Unduh Data Kelahiran
                 </Button>
             </div>
         </CardContent>
