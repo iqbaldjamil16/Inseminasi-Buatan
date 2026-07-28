@@ -240,7 +240,10 @@ export function RecordsTable() {
       record.strawProducer,
     ]);
     const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
-    XLSX.utils.book_append_sheet(wb, ws, "Inseminasi");
+    const sheetName = selectedStaff === 'all' ? 'Semua Petugas' : selectedStaff;
+    // Sheet name must not exceed 31 chars and not contain invalid chars
+    const sanitizedSheetName = sheetName.substring(0, 31).replace(/[\[\]\*\?\/\\]/g, '');
+    XLSX.utils.book_append_sheet(wb, ws, sanitizedSheetName);
     XLSX.writeFile(wb, `Laporan_IB_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
@@ -283,7 +286,10 @@ export function RecordsTable() {
     });
 
     const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
-    XLSX.utils.book_append_sheet(wb, ws, "Kelahiran");
+    const sheetName = selectedStaff === 'all' ? 'Semua Petugas' : selectedStaff;
+    // Sheet name must not exceed 31 chars and not contain invalid chars
+    const sanitizedSheetName = sheetName.substring(0, 31).replace(/[\[\]\*\?\/\\]/g, '');
+    XLSX.utils.book_append_sheet(wb, ws, sanitizedSheetName);
     XLSX.writeFile(wb, `Laporan_Kelahiran_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
