@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { InseminationRecordSchema, type InseminationRecord, type BirthRecord } from '@/lib/types';
@@ -59,6 +59,7 @@ export function RecordsTable() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
   const [selectedYear, setSelectedYear] = useState<string>('all');
+  const [hasHydrated, setHasHydrated] = useState(false);
   const [selectedPuskeswan, setSelectedPuskeswan] = useState<string>('all');
   const [selectedStaff, setSelectedStaff] = useState<string>('all');
   const [view, setView] = useState<'table' | 'stats'>('table');
@@ -66,6 +67,14 @@ export function RecordsTable() {
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
+
+  // Set current month and year on mount
+  useEffect(() => {
+    const now = new Date();
+    setSelectedMonth(now.getMonth().toString());
+    setSelectedYear(now.getFullYear().toString());
+    setHasHydrated(true);
+  }, []);
 
   // Insemination Records
   const recordsQuery = useMemoFirebase(
@@ -189,10 +198,14 @@ export function RecordsTable() {
 
   const availableYears = useMemo(() => {
     const years = new Set<string>();
+    // Add current year if hydrated to avoid mismatches
+    if (hasHydrated) {
+      years.add(new Date().getFullYear().toString());
+    }
     parsedRecords.forEach(r => years.add(r.inseminationDate.getFullYear().toString()));
     parsedBirthRecords.forEach(r => years.add(r.reportDate.getFullYear().toString()));
     return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
-  }, [parsedRecords, parsedBirthRecords]);
+  }, [parsedRecords, parsedBirthRecords, hasHydrated]);
 
   const months = [
     { value: '0', label: 'Januari' }, { value: '1', label: 'Februari' }, { value: '2', label: 'Maret' },
