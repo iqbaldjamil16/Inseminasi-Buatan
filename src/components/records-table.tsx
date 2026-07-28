@@ -214,6 +214,10 @@ export function RecordsTable() {
     { value: '9', label: 'Oktober' }, { value: '10', label: 'November' }, { value: '11', label: 'Desember' }
   ];
 
+  const sanitizeSheetName = (name: string) => {
+    return name.substring(0, 31).replace(/[\[\]\*\?\/\\]/g, '');
+  };
+
   const exportInseminationToExcel = () => {
     if (filteredInseminationData.length === 0) {
         toast({ title: 'Info', description: 'Tidak ada data inseminasi untuk diekspor.' });
@@ -224,26 +228,54 @@ export function RecordsTable() {
         'No.', 'Tanggal IB', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
         'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
     ];
-    const dataRows = filteredInseminationData.map((record, index) => [
-      index + 1,
-      format(record.inseminationDate, 'dd-MM-yyyy'),
-      record.puskeswan,
-      record.breederName,
-      record.breederAddress,
-      record.phoneNumber,
-      record.breederId,
-      record.cowType,
-      record.cowId,
-      record.strawType,
-      record.strawId,
-      record.strawBatchId,
-      record.strawProducer,
-    ]);
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
-    const sheetName = selectedStaff === 'all' ? 'Semua Petugas' : selectedStaff;
-    // Sheet name must not exceed 31 chars and not contain invalid chars
-    const sanitizedSheetName = sheetName.substring(0, 31).replace(/[\[\]\*\?\/\\]/g, '');
-    XLSX.utils.book_append_sheet(wb, ws, sanitizedSheetName);
+
+    if (selectedStaff === 'all') {
+      // Group by staff
+      const groupedData: Record<string, InseminationRecord[]> = {};
+      filteredInseminationData.forEach(r => {
+        if (!groupedData[r.staffName]) groupedData[r.staffName] = [];
+        groupedData[r.staffName].push(r);
+      });
+
+      Object.entries(groupedData).forEach(([staffName, records]) => {
+        const dataRows = records.map((record, index) => [
+          index + 1,
+          format(record.inseminationDate, 'dd-MM-yyyy'),
+          record.puskeswan,
+          record.breederName,
+          record.breederAddress,
+          record.phoneNumber,
+          record.breederId,
+          record.cowType,
+          record.cowId,
+          record.strawType,
+          record.strawId,
+          record.strawBatchId,
+          record.strawProducer,
+        ]);
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+        XLSX.utils.book_append_sheet(wb, ws, sanitizeSheetName(staffName));
+      });
+    } else {
+      const dataRows = filteredInseminationData.map((record, index) => [
+        index + 1,
+        format(record.inseminationDate, 'dd-MM-yyyy'),
+        record.puskeswan,
+        record.breederName,
+        record.breederAddress,
+        record.phoneNumber,
+        record.breederId,
+        record.cowType,
+        record.cowId,
+        record.strawType,
+        record.strawId,
+        record.strawBatchId,
+        record.strawProducer,
+      ]);
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+      XLSX.utils.book_append_sheet(wb, ws, sanitizeSheetName(selectedStaff));
+    }
+    
     XLSX.writeFile(wb, `Laporan_IB_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
@@ -259,37 +291,66 @@ export function RecordsTable() {
         'Tgl Lahir Anak', 'Jenis Kelamin Anak', 'Jumlah Anak'
     ];
     
-    const dataRows: any[][] = [];
-    let displayIndex = 1;
-    
-    filteredBirthData.forEach((record) => {
-      // Create a separate row for each child in the birth record
-      record.children.forEach((child) => {
-        dataRows.push([
-          displayIndex,
-          format(record.reportDate, 'dd-MM-yyyy'),
-          record.puskeswan,
-          record.breederName,
-          record.breederId,
-          record.breederAddress,
-          record.matingType,
-          record.cowType || '-',
-          record.cowEartag || '-',
-          record.bullType || '-',
-          record.bullEartag || '-',
-          record.birthDate ? format(record.birthDate, 'dd-MM-yyyy') : '-',
-          child.gender || '-',
-          child.count || '0'
-        ]);
-        displayIndex++;
-      });
-    });
+    if (selectedStaff === 'all') {
+        const groupedData: Record<string, BirthRecord[]> = {};
+        filteredBirthData.forEach(r => {
+          if (!groupedData[r.staffName]) groupedData[r.staffName] = [];
+          groupedData[r.staffName].push(r);
+        });
 
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
-    const sheetName = selectedStaff === 'all' ? 'Semua Petugas' : selectedStaff;
-    // Sheet name must not exceed 31 chars and not contain invalid chars
-    const sanitizedSheetName = sheetName.substring(0, 31).replace(/[\[\]\*\?\/\\]/g, '');
-    XLSX.utils.book_append_sheet(wb, ws, sanitizedSheetName);
+        Object.entries(groupedData).forEach(([staffName, records]) => {
+            const dataRows: any[][] = [];
+            let displayIndex = 1;
+            records.forEach((record) => {
+              record.children.forEach((child) => {
+                dataRows.push([
+                  displayIndex++,
+                  format(record.reportDate, 'dd-MM-yyyy'),
+                  record.puskeswan,
+                  record.breederName,
+                  record.breederId,
+                  record.breederAddress,
+                  record.matingType,
+                  record.cowType || '-',
+                  record.cowEartag || '-',
+                  record.bullType || '-',
+                  record.bullEartag || '-',
+                  record.birthDate ? format(record.birthDate, 'dd-MM-yyyy') : '-',
+                  child.gender || '-',
+                  child.count || '0'
+                ]);
+              });
+            });
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+            XLSX.utils.book_append_sheet(wb, ws, sanitizeSheetName(staffName));
+        });
+    } else {
+        const dataRows: any[][] = [];
+        let displayIndex = 1;
+        filteredBirthData.forEach((record) => {
+          record.children.forEach((child) => {
+            dataRows.push([
+              displayIndex++,
+              format(record.reportDate, 'dd-MM-yyyy'),
+              record.puskeswan,
+              record.breederName,
+              record.breederId,
+              record.breederAddress,
+              record.matingType,
+              record.cowType || '-',
+              record.cowEartag || '-',
+              record.bullType || '-',
+              record.bullEartag || '-',
+              record.birthDate ? format(record.birthDate, 'dd-MM-yyyy') : '-',
+              child.gender || '-',
+              child.count || '0'
+            ]);
+          });
+        });
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+        XLSX.utils.book_append_sheet(wb, ws, sanitizeSheetName(selectedStaff));
+    }
+
     XLSX.writeFile(wb, `Laporan_Kelahiran_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
