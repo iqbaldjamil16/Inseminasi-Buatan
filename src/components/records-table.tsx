@@ -226,7 +226,7 @@ export function RecordsTable() {
     const wb = XLSX.utils.book_new();
     const headers = [
         'No.', 'Tanggal IB', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
-        'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen'
+        'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen', 'Link Google Drive'
     ];
 
     if (selectedStaff === 'all') {
@@ -252,6 +252,7 @@ export function RecordsTable() {
           record.strawId,
           record.strawBatchId,
           record.strawProducer,
+          record.googleDriveLink || '-',
         ]);
         const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
         XLSX.utils.book_append_sheet(wb, ws, sanitizeSheetName(staffName));
@@ -271,6 +272,7 @@ export function RecordsTable() {
         record.strawId,
         record.strawBatchId,
         record.strawProducer,
+        record.googleDriveLink || '-',
       ]);
       const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
       XLSX.utils.book_append_sheet(wb, ws, sanitizeSheetName(selectedStaff));
@@ -288,7 +290,7 @@ export function RecordsTable() {
     const headers = [
         'No.', 'Tgl Laporan', 'Puskeswan', 'Nama Peternak', 'Identitas Peternak', 'Alamat', 
         'Jenis Perkawinan', 'Jenis Indukan', 'Eartag Indukan', 'Jenis Pejantan', 'Eartag Pejantan',
-        'Tgl Lahir Anak', 'Jenis Kelamin Anak', 'Jumlah Anak'
+        'Tgl Lahir Anak', 'Jenis Kelamin Anak', 'Jumlah Anak', 'Link Google Drive'
     ];
     
     if (selectedStaff === 'all') {
@@ -317,7 +319,8 @@ export function RecordsTable() {
                   record.bullEartag || '-',
                   record.birthDate ? format(record.birthDate, 'dd-MM-yyyy') : '-',
                   child.gender || '-',
-                  child.count || '0'
+                  child.count || '0',
+                  record.googleDriveLink || '-',
                 ]);
               });
             });
@@ -343,7 +346,8 @@ export function RecordsTable() {
               record.bullEartag || '-',
               record.birthDate ? format(record.birthDate, 'dd-MM-yyyy') : '-',
               child.gender || '-',
-              child.count || '0'
+              child.count || '0',
+              record.googleDriveLink || '-',
             ]);
           });
         });
