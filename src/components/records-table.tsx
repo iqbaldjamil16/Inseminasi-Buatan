@@ -253,23 +253,35 @@ export function RecordsTable() {
     const headers = [
         'No.', 'Tgl Laporan', 'Puskeswan', 'Nama Peternak', 'Identitas Peternak', 'Alamat', 
         'Jenis Perkawinan', 'Jenis Indukan', 'Eartag Indukan', 'Jenis Pejantan', 'Eartag Pejantan',
-        'Tgl Lahir Anak', 'Data Anakan'
+        'Tgl Lahir Anak', 'Jenis Kelamin Anak', 'Jumlah Anak'
     ];
-    const dataRows = filteredBirthData.map((record, index) => [
-      index + 1,
-      format(record.reportDate, 'dd-MM-yyyy'),
-      record.puskeswan,
-      record.breederName,
-      record.breederId,
-      record.breederAddress,
-      record.matingType,
-      record.cowType || '-',
-      record.cowEartag || '-',
-      record.bullType || '-',
-      record.bullEartag || '-',
-      record.birthDate ? format(record.birthDate, 'dd-MM-yyyy') : '-',
-      record.children.map(c => `${c.gender}(${c.count})`).join(', ')
-    ]);
+    
+    const dataRows: any[][] = [];
+    let displayIndex = 1;
+    
+    filteredBirthData.forEach((record) => {
+      // Create a separate row for each child in the birth record
+      record.children.forEach((child) => {
+        dataRows.push([
+          displayIndex,
+          format(record.reportDate, 'dd-MM-yyyy'),
+          record.puskeswan,
+          record.breederName,
+          record.breederId,
+          record.breederAddress,
+          record.matingType,
+          record.cowType || '-',
+          record.cowEartag || '-',
+          record.bullType || '-',
+          record.bullEartag || '-',
+          record.birthDate ? format(record.birthDate, 'dd-MM-yyyy') : '-',
+          child.gender || '-',
+          child.count || '0'
+        ]);
+        displayIndex++;
+      });
+    });
+
     const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
     XLSX.utils.book_append_sheet(wb, ws, "Kelahiran");
     XLSX.writeFile(wb, `Laporan_Kelahiran_${new Date().toISOString().split('T')[0]}.xlsx`);
