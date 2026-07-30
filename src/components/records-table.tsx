@@ -22,7 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Search, BarChart, Table as TableIcon, FileSpreadsheet } from 'lucide-react';
+import { Search, BarChart, Table as TableIcon, FileSpreadsheet, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Select,
@@ -178,7 +178,8 @@ export function RecordsTable() {
       staff: r.staffName,
       puskeswan: r.puskeswan,
       subInfo: r.strawType,
-      cowInfo: `${r.cowType || '-'}-${r.cowId || '-'}`
+      cowInfo: `${r.cowType || '-'}-${r.cowId || '-'}`,
+      gdLink: r.googleDriveLink
     }));
 
     const kelahiran = filteredBirthData.map(r => ({
@@ -190,7 +191,8 @@ export function RecordsTable() {
       staff: r.staffName,
       puskeswan: r.puskeswan,
       subInfo: r.children.map(c => `${c.gender}(${c.count})`).join(', '),
-      cowInfo: `${r.cowType || '-'}-${r.cowEartag || '-'}`
+      cowInfo: `${r.cowType || '-'}-${r.cowEartag || '-'}`,
+      gdLink: r.googleDriveLink
     }));
 
     return [...inseminasi, ...kelahiran].sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -358,10 +360,10 @@ export function RecordsTable() {
     XLSX.writeFile(wb, `Laporan_Kelahiran_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
-  const RecordDetailRow = ({ label, value }: { label: string, value: string | number | undefined }) => (
+  const RecordDetailRow = ({ label, value }: { label: string, value: React.ReactNode }) => (
     <div className="flex justify-between text-sm py-1">
       <span className="text-muted-foreground">{label}</span>
-      <span className="text-right font-medium">{value || '-'}</span>
+      <span className="text-right font-medium">{value ?? '-'}</span>
     </div>
   );
 
@@ -518,6 +520,13 @@ export function RecordsTable() {
                               <RecordDetailRow label="Nama Peternak" value={record.breeder} />
                               <RecordDetailRow label="Jenis Straw" value={record.subInfo} />
                               <RecordDetailRow label="Jenis Indukan" value={record.cowInfo} />
+                              <RecordDetailRow label="Link GD" value={
+                                record.gdLink ? (
+                                  <a href={record.gdLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline justify-end">
+                                    Buka <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                ) : '-'
+                              } />
                             </div>
                           </AccordionContent>
                         </AccordionItem>
@@ -534,6 +543,7 @@ export function RecordsTable() {
                               <TableHead>Peternak</TableHead>
                               <TableHead>Jenis Straw</TableHead>
                               <TableHead>Jenis Indukan</TableHead>
+                              <TableHead>Link GD</TableHead>
                               <TableHead>Petugas</TableHead>
                           </TableRow>
                       </TableHeader>
@@ -557,6 +567,13 @@ export function RecordsTable() {
                                   </TableCell>
                                   <TableCell>{record.subInfo}</TableCell>
                                   <TableCell>{record.cowInfo}</TableCell>
+                                  <TableCell>
+                                    {record.gdLink ? (
+                                      <a href={record.gdLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
+                                        Buka <ExternalLink className="h-3 w-3" />
+                                      </a>
+                                    ) : '-'}
+                                  </TableCell>
                                   <TableCell>{record.staff}</TableCell>
                               </TableRow>
                           ))}
