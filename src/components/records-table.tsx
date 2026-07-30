@@ -22,7 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Search, BarChart, Table as TableIcon, FileSpreadsheet, ExternalLink } from 'lucide-react';
+import { Search, BarChart, Table as TableIcon, FileSpreadsheet, ExternalLink, Image as ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Select,
@@ -31,6 +31,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
@@ -179,7 +186,8 @@ export function RecordsTable() {
       puskeswan: r.puskeswan,
       subInfo: r.strawType,
       cowInfo: `${r.cowType || '-'}-${r.cowId || '-'}`,
-      gdLink: r.googleDriveLink
+      gdLink: r.googleDriveLink,
+      photo: r.servicePhoto
     }));
 
     const kelahiran = filteredBirthData.map(r => ({
@@ -192,7 +200,8 @@ export function RecordsTable() {
       puskeswan: r.puskeswan,
       subInfo: r.children.map(c => `${c.gender}(${c.count})`).join(', '),
       cowInfo: `${r.cowType || '-'}-${r.cowEartag || '-'}`,
-      gdLink: r.googleDriveLink
+      gdLink: r.googleDriveLink,
+      photo: r.servicePhoto
     }));
 
     return [...inseminasi, ...kelahiran].sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -367,6 +376,27 @@ export function RecordsTable() {
     </div>
   );
 
+  const PhotoViewer = ({ photoUrl }: { photoUrl: string }) => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <div className="relative group cursor-pointer w-12 h-12 rounded overflow-hidden border">
+          <img src={photoUrl} alt="Thumbnail" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+          <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <Search className="h-4 w-4 text-white" />
+          </div>
+        </div>
+      </DialogTrigger>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Foto Pelayanan</DialogTitle>
+        </DialogHeader>
+        <div className="flex items-center justify-center p-2">
+           <img src={photoUrl} alt="Pelayanan" className="max-w-full max-h-[70vh] rounded shadow-lg object-contain" />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <div className="space-y-6">
       <Card>
@@ -527,6 +557,9 @@ export function RecordsTable() {
                                   </a>
                                 ) : '-'
                               } />
+                              <RecordDetailRow label="Foto" value={
+                                record.photo ? <PhotoViewer photoUrl={record.photo} /> : '-'
+                              } />
                             </div>
                           </AccordionContent>
                         </AccordionItem>
@@ -544,6 +577,7 @@ export function RecordsTable() {
                               <TableHead>Jenis Straw</TableHead>
                               <TableHead>Jenis Indukan</TableHead>
                               <TableHead>Link GD</TableHead>
+                              <TableHead>Foto</TableHead>
                               <TableHead>Petugas</TableHead>
                           </TableRow>
                       </TableHeader>
@@ -573,6 +607,9 @@ export function RecordsTable() {
                                         Buka <ExternalLink className="h-3 w-3" />
                                       </a>
                                     ) : '-'}
+                                  </TableCell>
+                                  <TableCell>
+                                    {record.photo ? <PhotoViewer photoUrl={record.photo} /> : <div className="text-muted-foreground/30"><ImageIcon className="h-6 w-6" /></div>}
                                   </TableCell>
                                   <TableCell>{record.staff}</TableCell>
                               </TableRow>
