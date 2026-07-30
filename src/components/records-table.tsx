@@ -177,8 +177,7 @@ export function RecordsTable() {
       breederId: r.breederId,
       staff: r.staffName,
       puskeswan: r.puskeswan,
-      mainInfo: `Eartag: ${r.cowId}`,
-      subInfo: `Straw: ${r.strawType}`
+      subInfo: r.strawType
     }));
 
     const kelahiran = filteredBirthData.map(r => ({
@@ -189,7 +188,6 @@ export function RecordsTable() {
       breederId: r.breederId,
       staff: r.staffName,
       puskeswan: r.puskeswan,
-      mainInfo: r.matingType,
       subInfo: r.children.map(c => `${c.gender}(${c.count})`).join(', ')
     }));
 
