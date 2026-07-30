@@ -902,7 +902,9 @@ export function InseminationForm() {
                           name="bullType"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs">Jenis Pejantan</FormLabel>
+                              <FormLabel className="text-xs">
+                                {watchMatingType === 'Inseminasi Buatan' ? 'Jenis Straw Pejantan' : 'Jenis Pejantan'}
+                              </FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
