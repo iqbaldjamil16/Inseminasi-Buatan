@@ -47,30 +47,30 @@ const topoyoVillages = [
   'Desa Bambamanurug', 'Desa Budong-Budong', 'Desa Kabubu', 'Desa Pangalloang', 
   'Desa Paraili', 'Desa Salule\'bo', 'Desa Salupangkang', 'Desa Salupangkang IV', 
   'Desa Sinabatta', 'Desa Tabolang', 'Desa Tangkau', 'Desa Tappilina', 
-  'Desa Topoyo', 'Desa Tumbu', 'Desa Waeputeh'
+  'Desa Topoyo', 'Desa Tumbu', 'Desa Waeputeh', 'Lainnya'
 ].sort();
 
 const tobadakVillages = [
   'Desa Bambadaru', 'Desa Batu Parigi', 'Desa Mahahe', 'Desa Polongaan', 
-  'Desa Saluadak', 'Desa Sejati', 'Desa Sulobaja', 'Desa Tobadak'
+  'Desa Saluadak', 'Desa Sejati', 'Desa Sulobaja', 'Desa Tobadak', 'Lainnya'
 ].sort();
 
 const pangaleVillages = [
     'Desa Kombiling', 'Desa Kuo', 'Desa Lamba-lamba', 'Desa Lemo-Lemo', 
     'Desa Pangale', 'Desa Polo Camba', 'Desa Polo Lereng', 'Desa Polo Pangale', 
-    'Desa Sartanamaju'
+    'Desa Sartanamaju', 'Lainnya'
 ].sort();
 
 const budongBudongVillages = [
   'Desa Babana', 'Desa Barakkang', 'Desa Bojo', 'Desa Kire', 'Desa Lembah Hada', 
   'Desa Lumu', 'Desa Pasapa', 'Desa Potantanakayyang', 'Desa Salogatta', 
-  'Desa Salumanurung', 'Desa Tinali'
+  'Desa Salumanurung', 'Desa Tinali', 'Lainnya'
 ].sort();
 
 const karossaVillages = [
   'Desa Benggaulu', 'Desa Kadaila', 'Desa Karossa', 'Desa Kayucalla', 'Desa Lara',
   'Desa Lembah Hopo', 'Desa Salubiro', 'Desa Sanjango', 'Desa Sukamaju', 
-  'Desa Tasoskko', 'Desa Kambunong', 'Mora IV', 'UPT Lara III'
+  'Desa Tasoskko', 'Desa Kambunong', 'Mora IV', 'UPT Lara III', 'Lainnya'
 ].sort();
 
 const budongBudongStaff = ['Anshari Saleh', 'Hadi', 'Nur Fauzi', 'Rahman', 'Suprapto', 'Tadi Sole', 'Lainnya'].sort();
@@ -129,14 +129,18 @@ export function InseminationForm() {
     resolver: zodResolver(InseminationRecordSchema),
     defaultValues: {
       staffName: '',
+      staffNameOther: '',
       puskeswan: '',
       breederName: '',
       breederAddress: '',
+      breederAddressOther: '',
       phoneNumber: '',
       breederId: '',
       cowType: '',
+      cowTypeOther: '',
       cowId: '',
       strawType: '',
+      strawTypeOther: '',
       strawId: '',
       strawBatchId: '',
       strawProducer: '',
@@ -150,15 +154,19 @@ export function InseminationForm() {
     resolver: zodResolver(BirthRecordSchema),
     defaultValues: {
       staffName: '',
+      staffNameOther: '',
       puskeswan: '',
       breederName: '',
       breederAddress: '',
+      breederAddressOther: '',
       phoneNumber: '',
       breederId: '',
       matingType: '',
       cowType: '',
+      cowTypeOther: '',
       cowEartag: '',
       bullType: '',
+      bullTypeOther: '',
       bullEartag: '',
       strawId: '',
       strawBatchId: '',
@@ -174,9 +182,20 @@ export function InseminationForm() {
     name: "children",
   });
 
+  // Watches for Inseminasi
   const watchPuskeswanInseminasi = formInseminasi.watch('puskeswan');
+  const watchStaffInseminasi = formInseminasi.watch('staffName');
+  const watchAddressInseminasi = formInseminasi.watch('breederAddress');
+  const watchCowTypeInseminasi = formInseminasi.watch('cowType');
+  const watchStrawTypeInseminasi = formInseminasi.watch('strawType');
+
+  // Watches for Kelahiran
   const watchPuskeswanKelahiran = formKelahiran.watch('puskeswan');
+  const watchStaffKelahiran = formKelahiran.watch('staffName');
+  const watchAddressKelahiran = formKelahiran.watch('breederAddress');
   const watchMatingType = formKelahiran.watch('matingType');
+  const watchCowTypeKelahiran = formKelahiran.watch('cowType');
+  const watchBullTypeKelahiran = formKelahiran.watch('bullType');
 
   const staffOptionsInseminasi = useMemo(() => staffMap[watchPuskeswanInseminasi] || [], [watchPuskeswanInseminasi]);
   const villageOptionsInseminasi = useMemo(() => villageMap[watchPuskeswanInseminasi] || [], [watchPuskeswanInseminasi]);
@@ -187,9 +206,17 @@ export function InseminationForm() {
   async function onSubmitInseminasi(data: InseminationRecord) {
     if (!firestore) return;
     setIsSubmittingInseminasi(true);
+    
+    // Process "Other" fields
+    const finalData = { ...data };
+    if (data.staffName === 'Lainnya' && data.staffNameOther) finalData.staffName = data.staffNameOther;
+    if (data.breederAddress === 'Lainnya' && data.breederAddressOther) finalData.breederAddress = data.breederAddressOther;
+    if (data.cowType === 'Lainnya' && data.cowTypeOther) finalData.cowType = data.cowTypeOther;
+    if (data.strawType === 'Lainnya' && data.strawTypeOther) finalData.strawType = data.strawTypeOther;
+
     try {
       const collectionRef = collection(firestore, 'inseminationRecords');
-      addDocumentNonBlocking(collectionRef, { ...data, createdAt: serverTimestamp() });
+      addDocumentNonBlocking(collectionRef, { ...finalData, createdAt: serverTimestamp() });
       toast({ title: 'Sukses', description: 'Data Inseminasi berhasil disimpan.' });
       formInseminasi.reset();
       router.push('/records');
@@ -203,9 +230,17 @@ export function InseminationForm() {
   async function onSubmitKelahiran(data: BirthRecord) {
     if (!firestore) return;
     setIsSubmittingKelahiran(true);
+
+    // Process "Other" fields
+    const finalData = { ...data };
+    if (data.staffName === 'Lainnya' && data.staffNameOther) finalData.staffName = data.staffNameOther;
+    if (data.breederAddress === 'Lainnya' && data.breederAddressOther) finalData.breederAddress = data.breederAddressOther;
+    if (data.cowType === 'Lainnya' && data.cowTypeOther) finalData.cowType = data.cowTypeOther;
+    if (data.bullType === 'Lainnya' && data.bullTypeOther) finalData.bullType = data.bullTypeOther;
+
     try {
       const collectionRef = collection(firestore, 'birthRecords');
-      addDocumentNonBlocking(collectionRef, { ...data, createdAt: serverTimestamp() });
+      addDocumentNonBlocking(collectionRef, { ...finalData, createdAt: serverTimestamp() });
       toast({ title: 'Sukses', description: 'Data Kelahiran berhasil disimpan.' });
       formKelahiran.reset();
       router.push('/records');
@@ -337,6 +372,17 @@ export function InseminationForm() {
                             ))}
                           </SelectContent>
                         </Select>
+                        {watchStaffInseminasi === 'Lainnya' && (
+                          <FormField
+                            control={formInseminasi.control}
+                            name="staffNameOther"
+                            render={({ field: otherField }) => (
+                              <div className="mt-2">
+                                <Input placeholder="Input nama petugas manual" {...otherField} />
+                              </div>
+                            )}
+                          />
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -362,6 +408,17 @@ export function InseminationForm() {
                               ))}
                             </SelectContent>
                           </Select>
+                          {watchAddressInseminasi === 'Lainnya' && (
+                            <FormField
+                              control={formInseminasi.control}
+                              name="breederAddressOther"
+                              render={({ field: otherField }) => (
+                                <div className="mt-2">
+                                  <Input placeholder="Input alamat manual" {...otherField} />
+                                </div>
+                              )}
+                            />
+                          )}
                           <FormMessage />
                         </FormItem>
                       )}
@@ -435,6 +492,17 @@ export function InseminationForm() {
                             ))}
                           </SelectContent>
                         </Select>
+                        {watchCowTypeInseminasi === 'Lainnya' && (
+                          <FormField
+                            control={formInseminasi.control}
+                            name="cowTypeOther"
+                            render={({ field: otherField }) => (
+                              <div className="mt-2">
+                                <Input placeholder="Input jenis ternak manual" {...otherField} />
+                              </div>
+                            )}
+                          />
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -476,6 +544,17 @@ export function InseminationForm() {
                             ))}
                           </SelectContent>
                         </Select>
+                        {watchStrawTypeInseminasi === 'Lainnya' && (
+                          <FormField
+                            control={formInseminasi.control}
+                            name="strawTypeOther"
+                            render={({ field: otherField }) => (
+                              <div className="mt-2">
+                                <Input placeholder="Input jenis straw manual" {...otherField} />
+                              </div>
+                            )}
+                          />
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -631,6 +710,17 @@ export function InseminationForm() {
                               ))}
                             </SelectContent>
                           </Select>
+                          {watchStaffKelahiran === 'Lainnya' && (
+                            <FormField
+                              control={formKelahiran.control}
+                              name="staffNameOther"
+                              render={({ field: otherField }) => (
+                                <div className="mt-2">
+                                  <Input placeholder="Input nama petugas manual" {...otherField} />
+                                </div>
+                              )}
+                            />
+                          )}
                           <FormMessage />
                         </FormItem>
                       )}
@@ -700,6 +790,17 @@ export function InseminationForm() {
                               ))}
                             </SelectContent>
                           </Select>
+                          {watchAddressKelahiran === 'Lainnya' && (
+                            <FormField
+                              control={formKelahiran.control}
+                              name="breederAddressOther"
+                              render={({ field: otherField }) => (
+                                <div className="mt-2">
+                                  <Input placeholder="Input alamat manual" {...otherField} />
+                                </div>
+                              )}
+                            />
+                          )}
                           <FormMessage />
                         </FormItem>
                       )}
@@ -760,6 +861,17 @@ export function InseminationForm() {
                                   ))}
                                 </SelectContent>
                               </Select>
+                              {watchCowTypeKelahiran === 'Lainnya' && (
+                                <FormField
+                                  control={formKelahiran.control}
+                                  name="cowTypeOther"
+                                  render={({ field: otherField }) => (
+                                    <div className="mt-2">
+                                      <Input placeholder="Input jenis ternak manual" {...otherField} />
+                                    </div>
+                                  )}
+                                />
+                              )}
                               <FormMessage />
                             </FormItem>
                           )}
@@ -803,6 +915,17 @@ export function InseminationForm() {
                                   ))}
                                 </SelectContent>
                               </Select>
+                              {watchBullTypeKelahiran === 'Lainnya' && (
+                                <FormField
+                                  control={formKelahiran.control}
+                                  name="bullTypeOther"
+                                  render={({ field: otherField }) => (
+                                    <div className="mt-2">
+                                      <Input placeholder="Input jenis ternak manual" {...otherField} />
+                                    </div>
+                                  )}
+                                />
+                              )}
                               <FormMessage />
                             </FormItem>
                           )}

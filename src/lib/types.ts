@@ -8,15 +8,17 @@ export const InseminationRecordSchema = z.object({
   staffName: z.string().min(2, {
     message: 'Nama petugas harus diisi.',
   }),
+  staffNameOther: z.string().optional(),
   puskeswan: z.string().min(2, {
     message: 'Puskeswan harus diisi.',
   }),
   breederName: z.string().min(2, {
     message: 'Nama peternak harus diisi.',
   }),
-  breederAddress: z.string().min(5, {
+  breederAddress: z.string().min(2, {
     message: 'Alamat peternak harus diisi.',
   }),
+  breederAddressOther: z.string().optional(),
   phoneNumber: z.string().min(10, {
     message: 'Nomor HP harus valid.',
   }),
@@ -29,8 +31,10 @@ export const InseminationRecordSchema = z.object({
       message: 'ID Peternak (KTP) harus 16 digit.',
     }),
   cowType: z.string().min(1, { message: 'Jenis sapi harus diisi.' }),
+  cowTypeOther: z.string().optional(),
   cowId: z.string().min(1, { message: 'ID Indukan (Eartag) harus diisi.' }),
   strawType: z.string().min(1, { message: 'Jenis straw harus diisi.' }),
+  strawTypeOther: z.string().optional(),
   strawId: z.string().min(1, { message: 'ID pejantan straw harus diisi.' }),
   strawBatchId: z.string().min(1, { message: 'ID batch straw harus diisi.' }),
   strawProducer: z.string().min(1, { message: 'Produsen straw harus diisi.' }),
@@ -49,6 +53,7 @@ export const BirthRecordSchema = z.object({
   staffName: z.string().min(2, {
     message: 'Nama petugas harus diisi.',
   }),
+  staffNameOther: z.string().optional(),
   puskeswan: z.string().min(2, {
     message: 'Puskeswan harus diisi.',
   }),
@@ -58,14 +63,17 @@ export const BirthRecordSchema = z.object({
   breederAddress: z.string().min(2, {
     message: 'Alamat peternak harus diisi.',
   }),
+  breederAddressOther: z.string().optional(),
   phoneNumber: z.string().optional(),
   breederId: z.string().min(2, {
     message: 'Identitas peternak (KTP/HP) harus diisi.',
   }),
   matingType: z.string().min(1, { message: 'Jenis perkawinan harus dipilih.' }),
   cowType: z.string().optional(),
+  cowTypeOther: z.string().optional(),
   cowEartag: z.string().optional(),
   bullType: z.string().optional(),
+  bullTypeOther: z.string().optional(),
   bullEartag: z.string().optional(),
   strawId: z.string().optional(),
   strawBatchId: z.string().optional(),
