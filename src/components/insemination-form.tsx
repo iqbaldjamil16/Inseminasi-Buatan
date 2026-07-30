@@ -87,6 +87,20 @@ const puskeswanOptions = [
   'Puskeswan Topoyo',
 ];
 
+const livestockTypes = [
+  'Sapi Bali',
+  'Sapi Madura',
+  'Sapi Simental',
+  'Sapi Limosin',
+  'Sapi Brahman',
+  'Sapi Angus',
+  'Kambing Kacang',
+  'Kambing Etawa',
+  'Kambing PE',
+  'Babi',
+  'Lainnya'
+];
+
 const staffMap: Record<string, string[]> = {
   'Puskeswan Budong-Budong': budongBudongStaff,
   'Puskeswan Karossa': karossaStaff,
@@ -408,10 +422,19 @@ export function InseminationForm() {
                     name="cowType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Jenis Sapi Indukan</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Masukkan jenis sapi" {...field} />
-                        </FormControl>
+                        <FormLabel>Jenis Ternak Indukan</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih jenis ternak" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {livestockTypes.map((type) => (
+                              <SelectItem key={type} value={type}>{type}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -441,9 +464,18 @@ export function InseminationForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Jenis Straw Pejantan</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Masukkan jenis straw" {...field} />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih jenis straw" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {livestockTypes.map((type) => (
+                              <SelectItem key={type} value={type}>{type}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -716,9 +748,18 @@ export function InseminationForm() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-xs">Jenis Indukan</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Masukkan jenis sapi indukan" {...field} />
-                              </FormControl>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Pilih jenis ternak" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {livestockTypes.map((type) => (
+                                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -750,9 +791,18 @@ export function InseminationForm() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-xs">Jenis Pejantan</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Masukkan jenis sapi pejantan" {...field} />
-                              </FormControl>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Pilih jenis ternak" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {livestockTypes.map((type) => (
+                                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}
