@@ -58,11 +58,11 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 // Master Data Definitions
-const budongBudongStaff = ['Anshari Saleh', 'Hadi', 'Nur Fauzi', 'Rahman', 'Suprapto', 'Tadi Sole', 'Lainnya'].sort();
-const karossaStaff = ['Asri Rasyid', 'Basuki', 'drh. Stephani', 'Hasaruddin', 'Nasaruddin', 'Adiatman', 'Surianca', 'Lainnya'].sort();
-const pangaleStaff = ['Andri', 'drh. Ketut Elok', 'Jarwo', 'Jawaril', 'Kamarudin', 'Kamaruddin', 'Mansyur', 'Sugeng', 'Lainnya'].sort();
-const tobadakStaff = ['Aser M', 'drh. Ishak', 'Endang', 'Feliks S', 'Jupry', 'Madalena', 'Lainnya'].sort();
-const topoyoStaff = ['Alfons B', 'drh. Iqbal Djamil', 'Fitriani', 'Haslim', 'Rizky A', 'Lainnya'].sort();
+const budongBudongStaff = ['Anshari Saleh', 'Hadi', 'Nur Fauzi', 'Rahman', 'Suprapto', 'Tadi Sole'].sort();
+const karossaStaff = ['Asri Rasyid', 'Basuki', 'drh. Stephani', 'Hasaruddin', 'Nasaruddin', 'Adiatman', 'Surianca'].sort();
+const pangaleStaff = ['Andri', 'drh. Ketut Elok', 'Jarwo', 'Jawaril', 'Kamarudin', 'Kamaruddin', 'Mansyur', 'Sugeng'].sort();
+const tobadakStaff = ['Aser M', 'drh. Ishak', 'Endang', 'Feliks S', 'Jupry', 'Madalena'].sort();
+const topoyoStaff = ['Alfons B', 'drh. Iqbal Djamil', 'Fitriani', 'Haslim', 'Rizky A'].sort();
 
 const puskeswanOptions = [
   'Puskeswan Budong-Budong',
@@ -881,6 +881,7 @@ function EditRecordDialog({ record, type, isAdmin }: { record: any, type: 'Insem
                         {staffOptions.map((staff) => (
                           <SelectItem key={staff} value={staff}>{staff}</SelectItem>
                         ))}
+                        <SelectItem value="Lainnya">Lainnya</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -1218,7 +1219,11 @@ function EditRecordDialog({ record, type, isAdmin }: { record: any, type: 'Insem
                           render={({ field }) => (
                             <FormItem className="flex-1">
                               <FormLabel className="text-xs">Jumlah</FormLabel>
-                              <FormControl><Input type="number" {...field} /></FormItem>
+                              <FormControl>
+                                <Input type="number" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
                           )}
                         />
                         {fields.length > 1 && (
