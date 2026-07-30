@@ -376,10 +376,10 @@ export function RecordsTable() {
     </div>
   );
 
-  const PhotoViewer = ({ photoUrl }: { photoUrl: string }) => (
+  const PhotoViewer = ({ photoUrl, className }: { photoUrl: string, className?: string }) => (
     <Dialog>
       <DialogTrigger asChild>
-        <div className="relative group cursor-pointer w-12 h-12 rounded overflow-hidden border">
+        <div className={cn("relative group cursor-pointer rounded overflow-hidden border", className)}>
           <img src={photoUrl} alt="Thumbnail" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
           <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
             <Search className="h-4 w-4 text-white" />
@@ -524,7 +524,7 @@ export function RecordsTable() {
                   <div className="md:hidden">
                     <Accordion type="single" collapsible className="w-full space-y-4">
                       {combinedRecords.map((record) => (
-                        <AccordionItem value={record.id!} key={record.id!} className="border rounded-lg bg-card">
+                        <AccordionItem value={record.id!} key={record.id!} className="border rounded-lg bg-card overflow-hidden">
                           <AccordionTrigger className="p-4 hover:no-underline">
                             <div className="flex items-center justify-between w-full">
                                 <div className="flex-1 text-left">
@@ -557,10 +557,12 @@ export function RecordsTable() {
                                   </a>
                                 ) : '-'
                               } />
-                              <RecordDetailRow label="Foto" value={
-                                record.photo ? <PhotoViewer photoUrl={record.photo} /> : '-'
-                              } />
                             </div>
+                            {record.photo && (
+                              <div className="mt-4 w-full">
+                                <PhotoViewer photoUrl={record.photo} className="w-full h-auto max-h-64" />
+                              </div>
+                            )}
                           </AccordionContent>
                         </AccordionItem>
                       ))}
@@ -577,7 +579,7 @@ export function RecordsTable() {
                               <TableHead>Jenis Straw</TableHead>
                               <TableHead>Jenis Indukan</TableHead>
                               <TableHead>Link GD</TableHead>
-                              <TableHead>Foto</TableHead>
+                              <TableHead className="w-[80px]"></TableHead>
                               <TableHead>Petugas</TableHead>
                           </TableRow>
                       </TableHeader>
@@ -609,7 +611,11 @@ export function RecordsTable() {
                                     ) : '-'}
                                   </TableCell>
                                   <TableCell>
-                                    {record.photo ? <PhotoViewer photoUrl={record.photo} /> : <div className="text-muted-foreground/30"><ImageIcon className="h-6 w-6" /></div>}
+                                    {record.photo ? (
+                                      <PhotoViewer photoUrl={record.photo} className="w-12 h-12" />
+                                    ) : (
+                                      <div className="text-muted-foreground/30"><ImageIcon className="h-6 w-6" /></div>
+                                    )}
                                   </TableCell>
                                   <TableCell>{record.staff}</TableCell>
                               </TableRow>
