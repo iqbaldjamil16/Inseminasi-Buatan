@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { InseminationRecordSchema, type InseminationRecord, BirthRecordSchema, type BirthRecord } from '@/lib/types';
 import {
@@ -22,7 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Search, BarChart, Table as TableIcon, FileSpreadsheet, ExternalLink, Image as ImageIcon, Pencil, Trash2, Lock, Unlock } from 'lucide-react';
+import { Search, BarChart, Table as TableIcon, FileSpreadsheet, ExternalLink, Image as ImageIcon, Pencil, Trash2, Lock, Unlock, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Select,
@@ -40,6 +40,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { useCollection, useFirestore, useMemoFirebase, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
@@ -63,6 +71,35 @@ const puskeswanOptions = [
   'Puskeswan Tobadak',
   'Puskeswan Topoyo',
 ];
+
+const livestockTypes = [
+  'Sapi Bali',
+  'Sapi Madura',
+  'Sapi Simental',
+  'Sapi Limosin',
+  'Sapi Brahman',
+  'Sapi Angus',
+  'Kambing Kacang',
+  'Kambing Etawa',
+  'Kambing PE',
+  'Babi',
+  'Lainnya'
+];
+
+const strawProducerOptions = [
+  'BIB Lembang',
+  'BIB Singosari',
+  'BIB Pucak Maros',
+  'Lainnya'
+];
+
+const staffMap: Record<string, string[]> = {
+  'Puskeswan Budong-Budong': budongBudongStaff,
+  'Puskeswan Karossa': karossaStaff,
+  'Puskeswan Pangale': pangaleStaff,
+  'Puskeswan Tobadak': tobadakStaff,
+  'Puskeswan Topoyo': topoyoStaff,
+};
 
 export function RecordsTable() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -122,14 +159,6 @@ export function RecordsTable() {
   }, [birthRecordsData]);
 
   const staffFilterOptions = useMemo(() => {
-    const staffMap: Record<string, string[]> = {
-      'Puskeswan Budong-Budong': budongBudongStaff,
-      'Puskeswan Karossa': karossaStaff,
-      'Puskeswan Pangale': pangaleStaff,
-      'Puskeswan Tobadak': tobadakStaff,
-      'Puskeswan Topoyo': topoyoStaff,
-    };
-
     if (selectedPuskeswan === 'all') {
       const allUniqueStaff = new Set<string>();
       parsedRecords.forEach(record => {
@@ -220,7 +249,6 @@ export function RecordsTable() {
 
   const availableYears = useMemo(() => {
     const years = new Set<string>();
-    // Add current year if hydrated to avoid mismatches
     if (hasHydrated) {
       years.add(new Date().getFullYear().toString());
     }
@@ -266,12 +294,11 @@ export function RecordsTable() {
     }
     const wb = XLSX.utils.book_new();
     const headers = [
-        'No.', 'Tanggal IB', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
-        'Jenis Sapi', 'ID Indukan (Eartag)', 'Jenis Straw', 'ID Pejantan', 'ID Batch', 'Produsen', 'Link Google Drive'
+        'No.', 'Tanggal IB', 'Petugas', 'Puskeswan', 'Nama Peternak', 'Alamat Peternak', 'Nomor HP', 'ID Peternak (KTP)', 
+        'Jenis Ternak Indukan', 'ID Indukan (Eartag)', 'Jenis Straw Pejantan', 'ID Pejantan Straw', 'ID Batch Straw', 'Produsen Straw', 'Link Google Drive'
     ];
 
     if (selectedStaff === 'all') {
-      // Group by staff
       const groupedData: Record<string, InseminationRecord[]> = {};
       filteredInseminationData.forEach(r => {
         if (!groupedData[r.staffName]) groupedData[r.staffName] = [];
@@ -282,6 +309,7 @@ export function RecordsTable() {
         const dataRows = records.map((record, index) => [
           index + 1,
           format(record.inseminationDate, 'dd-MM-yyyy'),
+          record.staffName,
           record.puskeswan,
           record.breederName,
           record.breederAddress,
@@ -302,6 +330,7 @@ export function RecordsTable() {
       const dataRows = filteredInseminationData.map((record, index) => [
         index + 1,
         format(record.inseminationDate, 'dd-MM-yyyy'),
+        record.staffName,
         record.puskeswan,
         record.breederName,
         record.breederAddress,
@@ -329,7 +358,7 @@ export function RecordsTable() {
     }
     const wb = XLSX.utils.book_new();
     const headers = [
-        'No.', 'Tgl Laporan', 'Puskeswan', 'Nama Peternak', 'Identitas Peternak', 'Alamat', 
+        'No.', 'Tgl Laporan', 'Petugas', 'Puskeswan', 'Nama Peternak', 'Identitas Peternak', 'Alamat', 
         'Jenis Perkawinan', 'Jenis Indukan', 'Eartag Indukan', 'Jenis Pejantan', 'Eartag Pejantan',
         'Tgl Lahir Anak', 'Jenis Kelamin Anak', 'Jumlah Anak', 'Link Google Drive'
     ];
@@ -349,6 +378,7 @@ export function RecordsTable() {
                 dataRows.push([
                   displayIndex++,
                   format(record.reportDate, 'dd-MM-yyyy'),
+                  record.staffName,
                   record.puskeswan,
                   record.breederName,
                   record.breederId,
@@ -376,6 +406,7 @@ export function RecordsTable() {
             dataRows.push([
               displayIndex++,
               format(record.reportDate, 'dd-MM-yyyy'),
+              record.staffName,
               record.puskeswan,
               record.breederName,
               record.breederId,
@@ -734,11 +765,8 @@ function DeleteConfirmDialog({ onConfirm, title, description }: { onConfirm: () 
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={(e) => (e.target as any).closest('button[data-state="open"]')?.click()}>Batal</Button>
-          <Button variant="destructive" onClick={() => {
-            onConfirm();
-            // Closing trigger
-          }}>Hapus</Button>
+          <Button variant="outline">Batal</Button>
+          <Button variant="destructive" onClick={onConfirm}>Hapus</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -752,8 +780,23 @@ function EditRecordDialog({ record, type, isAdmin }: { record: any, type: 'Insem
 
   const form = useForm({
     resolver: zodResolver(type === 'Inseminasi' ? InseminationRecordSchema : BirthRecordSchema),
-    defaultValues: record
+    defaultValues: {
+      ...record,
+      inseminationDate: record.inseminationDate ? new Date(record.inseminationDate) : undefined,
+      reportDate: record.reportDate ? new Date(record.reportDate) : undefined,
+      birthDate: record.birthDate ? new Date(record.birthDate) : undefined,
+    }
   });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "children",
+  });
+
+  const watchPuskeswan = form.watch('puskeswan');
+  const watchMatingType = form.watch('matingType');
+
+  const staffOptions = useMemo(() => staffMap[watchPuskeswan] || [], [watchPuskeswan]);
 
   const onSubmit = (data: any) => {
     if (!firestore || !record.id) return;
@@ -771,64 +814,448 @@ function EditRecordDialog({ record, type, isAdmin }: { record: any, type: 'Insem
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Data {type}</DialogTitle>
-          <DialogDescription>Perbarui informasi catatan pelayanan.</DialogDescription>
+          <DialogDescription>Perbarui semua bidang informasi catatan pelayanan.</DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Nama Peternak</Label>
-              <Input {...form.register('breederName')} />
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Common Fields */}
+              <FormField
+                control={form.control}
+                name={type === 'Inseminasi' ? 'inseminationDate' : 'reportDate'}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tanggal {type === 'Inseminasi' ? 'IB' : 'Laporan'}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
+                        onChange={(e) => field.onChange(e.target.valueAsDate)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="puskeswan"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Puskeswan</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih Puskeswan" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {puskeswanOptions.map((opt) => (
+                          <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="staffName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nama Petugas</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih Petugas" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {staffOptions.map((staff) => (
+                          <SelectItem key={staff} value={staff}>{staff}</SelectItem>
+                        ))}
+                        <SelectItem value="Lainnya">Lainnya</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="breederName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nama Peternak</FormLabel>
+                    <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="breederId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Identitas Peternak (KTP/HP)</FormLabel>
+                    <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="breederAddress"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Alamat (Desa)</FormLabel>
+                    <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {type === 'Inseminasi' && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>No. HP</FormLabel>
+                        <FormControl><Input {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="cowType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Jenis Ternak Indukan</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {livestockTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="cowId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ID Indukan (Eartag)</FormLabel>
+                        <FormControl><Input {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="strawType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Jenis Straw Pejantan</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {livestockTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="strawId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ID Pejantan Straw</FormLabel>
+                        <FormControl><Input {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="strawBatchId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ID Batch Straw</FormLabel>
+                        <FormControl><Input {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="strawProducer"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Produsen Straw</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {strawProducerOptions.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              {type === 'Kelahiran' && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="matingType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Jenis Perkawinan</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Kawin Alam">Kawin Alam</SelectItem>
+                            <SelectItem value="Inseminasi Buatan">Inseminasi Buatan</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="cowType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Jenis Indukan</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {livestockTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="cowEartag"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>No. Eartag Indukan</FormLabel>
+                        <FormControl><Input {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="bullType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{watchMatingType === 'Inseminasi Buatan' ? 'Jenis Straw Pejantan' : 'Jenis Pejantan'}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {livestockTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {watchMatingType !== 'Inseminasi Buatan' && (
+                    <FormField
+                      control={form.control}
+                      name="bullEartag"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>No. Eartag Pejantan</FormLabel>
+                          <FormControl><Input {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                  {watchMatingType === 'Inseminasi Buatan' && (
+                    <>
+                      <FormField
+                        control={form.control}
+                        name="strawId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>ID Straw</FormLabel>
+                            <FormControl><Input {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="strawBatchId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>ID Batch</FormLabel>
+                            <FormControl><Input {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="strawProducer"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Produsen Straw</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {strawProducerOptions.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
+                  )}
+                  <FormField
+                    control={form.control}
+                    name="birthDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tanggal Lahir Anak</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
+                            onChange={(e) => field.onChange(e.target.valueAsDate)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              <FormField
+                control={form.control}
+                name="googleDriveLink"
+                render={({ field }) => (
+                  <FormItem className="lg:col-span-2">
+                    <FormLabel>Link Google Drive</FormLabel>
+                    <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            <div className="space-y-2">
-              <Label>Identitas/KTP</Label>
-              <Input {...form.register('breederId')} />
-            </div>
-            <div className="space-y-2">
-              <Label>Desa</Label>
-              <Input {...form.register('breederAddress')} />
-            </div>
-            {type === 'Inseminasi' && (
-              <>
-                <div className="space-y-2">
-                  <Label>ID Eartag Indukan</Label>
-                  <Input {...form.register('cowId')} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Jenis Sapi</Label>
-                  <Input {...form.register('cowType')} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Jenis Straw</Label>
-                  <Input {...form.register('strawType')} />
-                </div>
-              </>
-            )}
+
             {type === 'Kelahiran' && (
-               <>
-                <div className="space-y-2">
-                  <Label>ID Eartag Indukan</Label>
-                  <Input {...form.register('cowEartag')} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Jenis Perkawinan</Label>
-                  <Input {...form.register('matingType')} />
-                </div>
-               </>
+              <Card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm font-medium">Data Anakan</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-4 first:pt-0 first:border-t-0 relative">
+                      <FormField
+                        control={form.control}
+                        name={`children.${index}.gender`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Jenis Kelamin</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger><SelectValue placeholder="Pilih" /></SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Jantan">Jantan</SelectItem>
+                                <SelectItem value="Betina">Betina</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormItem>
+                        )}
+                      />
+                      <div className="flex items-end gap-2">
+                        <FormField
+                          control={form.control}
+                          name={`children.${index}.count`}
+                          render={({ field }) => (
+                            <FormItem className="flex-1">
+                              <FormLabel className="text-xs">Jumlah</FormLabel>
+                              <FormControl><Input type="number" {...field} /></FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        {fields.length > 1 && (
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-destructive mb-0.5"
+                            onClick={() => remove(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-2"
+                    onClick={() => append({ gender: '', count: '1' })}
+                  >
+                    <Plus className="h-4 w-4 mr-2" /> Tambah Anakan
+                  </Button>
+                </CardContent>
+              </Card>
             )}
-            <div className="space-y-2 md:col-span-2">
-              <Label>Link Google Drive</Label>
-              <Input {...form.register('googleDriveLink')} />
-            </div>
-          </div>
-          
-          <DialogFooter className="pt-4">
-            <Button type="submit">Simpan Perubahan</Button>
-          </DialogFooter>
-        </form>
+            
+            <DialogFooter className="pt-4 sticky bottom-0 bg-background py-4 border-t">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Batal</Button>
+              <Button type="submit">Simpan Perubahan</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
