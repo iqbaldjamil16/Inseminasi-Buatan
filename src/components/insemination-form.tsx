@@ -930,19 +930,21 @@ export function InseminationForm() {
                             </FormItem>
                           )}
                         />
-                        <FormField
-                          control={formKelahiran.control}
-                          name="bullEartag"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">No. Eartag Pejantan</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Masukkan nomor eartag pejantan" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        {watchMatingType !== 'Inseminasi Buatan' && (
+                          <FormField
+                            control={formKelahiran.control}
+                            name="bullEartag"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">No. Eartag Pejantan</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Masukkan nomor eartag pejantan" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
                       </CardContent>
                     </Card>
 
