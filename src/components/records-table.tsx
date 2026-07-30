@@ -881,7 +881,6 @@ function EditRecordDialog({ record, type, isAdmin }: { record: any, type: 'Insem
                         {staffOptions.map((staff) => (
                           <SelectItem key={staff} value={staff}>{staff}</SelectItem>
                         ))}
-                        <SelectItem value="Lainnya">Lainnya</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -1219,8 +1218,7 @@ function EditRecordDialog({ record, type, isAdmin }: { record: any, type: 'Insem
                           render={({ field }) => (
                             <FormItem className="flex-1">
                               <FormLabel className="text-xs">Jumlah</FormLabel>
-                              <FormControl><Input type="number" {...field} /></FormControl>
-                            </FormItem>
+                              <FormControl><Input type="number" {...field} /></FormItem>
                           )}
                         />
                         {fields.length > 1 && (
