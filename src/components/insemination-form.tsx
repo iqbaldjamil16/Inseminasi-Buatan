@@ -101,6 +101,13 @@ const livestockTypes = [
   'Lainnya'
 ];
 
+const strawProducerOptions = [
+  'BIB Lembang',
+  'BIB Singosari',
+  'BIB Pucak Maros',
+  'Lainnya'
+];
+
 const staffMap: Record<string, string[]> = {
   'Puskeswan Budong-Budong': budongBudongStaff,
   'Puskeswan Karossa': karossaStaff,
@@ -144,6 +151,7 @@ export function InseminationForm() {
       strawId: '',
       strawBatchId: '',
       strawProducer: '',
+      strawProducerOther: '',
       servicePhoto: '',
       googleDriveLink: '',
     },
@@ -171,6 +179,7 @@ export function InseminationForm() {
       strawId: '',
       strawBatchId: '',
       strawProducer: '',
+      strawProducerOther: '',
       children: [{ gender: '', count: '1' }],
       servicePhoto: '',
       googleDriveLink: '',
@@ -188,6 +197,7 @@ export function InseminationForm() {
   const watchAddressInseminasi = formInseminasi.watch('breederAddress');
   const watchCowTypeInseminasi = formInseminasi.watch('cowType');
   const watchStrawTypeInseminasi = formInseminasi.watch('strawType');
+  const watchStrawProducerInseminasi = formInseminasi.watch('strawProducer');
 
   // Watches for Kelahiran
   const watchPuskeswanKelahiran = formKelahiran.watch('puskeswan');
@@ -196,6 +206,7 @@ export function InseminationForm() {
   const watchMatingType = formKelahiran.watch('matingType');
   const watchCowTypeKelahiran = formKelahiran.watch('cowType');
   const watchBullTypeKelahiran = formKelahiran.watch('bullType');
+  const watchStrawProducerKelahiran = formKelahiran.watch('strawProducer');
 
   const staffOptionsInseminasi = useMemo(() => staffMap[watchPuskeswanInseminasi] || [], [watchPuskeswanInseminasi]);
   const villageOptionsInseminasi = useMemo(() => villageMap[watchPuskeswanInseminasi] || [], [watchPuskeswanInseminasi]);
@@ -213,6 +224,7 @@ export function InseminationForm() {
     if (data.breederAddress === 'Lainnya' && data.breederAddressOther) finalData.breederAddress = data.breederAddressOther;
     if (data.cowType === 'Lainnya' && data.cowTypeOther) finalData.cowType = data.cowTypeOther;
     if (data.strawType === 'Lainnya' && data.strawTypeOther) finalData.strawType = data.strawTypeOther;
+    if (data.strawProducer === 'Lainnya' && data.strawProducerOther) finalData.strawProducer = data.strawProducerOther;
 
     try {
       const collectionRef = collection(firestore, 'inseminationRecords');
@@ -237,6 +249,7 @@ export function InseminationForm() {
     if (data.breederAddress === 'Lainnya' && data.breederAddressOther) finalData.breederAddress = data.breederAddressOther;
     if (data.cowType === 'Lainnya' && data.cowTypeOther) finalData.cowType = data.cowTypeOther;
     if (data.bullType === 'Lainnya' && data.bullTypeOther) finalData.bullType = data.bullTypeOther;
+    if (data.strawProducer === 'Lainnya' && data.strawProducerOther) finalData.strawProducer = data.strawProducerOther;
 
     try {
       const collectionRef = collection(firestore, 'birthRecords');
@@ -600,9 +613,29 @@ export function InseminationForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Produsen Straw</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Masukkan produsen" {...field} />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih Produsen" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {strawProducerOptions.map((option) => (
+                              <SelectItem key={option} value={option}>{option}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {watchStrawProducerInseminasi === 'Lainnya' && (
+                          <FormField
+                            control={formInseminasi.control}
+                            name="strawProducerOther"
+                            render={({ field: otherField }) => (
+                              <div className="mt-2">
+                                <Input placeholder="Input produsen manual" {...otherField} />
+                              </div>
+                            )}
+                          />
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -988,9 +1021,29 @@ export function InseminationForm() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel className="text-xs">Produsen Straw</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Masukkan produsen" {...field} />
-                                </FormControl>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Pilih Produsen" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {strawProducerOptions.map((option) => (
+                                      <SelectItem key={option} value={option}>{option}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                {watchStrawProducerKelahiran === 'Lainnya' && (
+                                  <FormField
+                                    control={formKelahiran.control}
+                                    name="strawProducerOther"
+                                    render={({ field: otherField }) => (
+                                      <div className="mt-2">
+                                        <Input placeholder="Input produsen manual" {...otherField} />
+                                      </div>
+                                    )}
+                                  />
+                                )}
                                 <FormMessage />
                               </FormItem>
                             )}

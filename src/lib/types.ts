@@ -38,6 +38,7 @@ export const InseminationRecordSchema = z.object({
   strawId: z.string().min(1, { message: 'ID pejantan straw harus diisi.' }),
   strawBatchId: z.string().min(1, { message: 'ID batch straw harus diisi.' }),
   strawProducer: z.string().min(1, { message: 'Produsen straw harus diisi.' }),
+  strawProducerOther: z.string().optional(),
   servicePhoto: z.string().optional(),
   googleDriveLink: z.string().optional(),
   createdAt: z.any().optional(),
@@ -78,6 +79,7 @@ export const BirthRecordSchema = z.object({
   strawId: z.string().optional(),
   strawBatchId: z.string().optional(),
   strawProducer: z.string().optional(),
+  strawProducerOther: z.string().optional(),
   birthDate: z.date().optional(),
   children: z.array(z.object({
     gender: z.string().min(1, "Pilih jenis kelamin"),
