@@ -516,7 +516,6 @@ export function RecordsTable() {
                           <AccordionContent className="p-4 pt-0">
                             <div className="space-y-2 border-t pt-4">
                               <RecordDetailRow label="Nama Peternak" value={record.breeder} />
-                              <RecordDetailRow label="Info Utama" value={record.mainInfo} />
                               <RecordDetailRow label="Detail" value={record.subInfo} />
                             </div>
                           </AccordionContent>
@@ -532,7 +531,6 @@ export function RecordsTable() {
                               <TableHead>Tipe</TableHead>
                               <TableHead>Tanggal</TableHead>
                               <TableHead>Peternak</TableHead>
-                              <TableHead>Info Utama</TableHead>
                               <TableHead>Detail</TableHead>
                               <TableHead>Petugas</TableHead>
                           </TableRow>
@@ -555,7 +553,6 @@ export function RecordsTable() {
                                       <div className="font-medium">{record.breeder}</div>
                                       <div className="text-sm text-muted-foreground">{record.breederId}</div>
                                   </TableCell>
-                                  <TableCell>{record.mainInfo}</TableCell>
                                   <TableCell>{record.subInfo}</TableCell>
                                   <TableCell>{record.staff}</TableCell>
                               </TableRow>
