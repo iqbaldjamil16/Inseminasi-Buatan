@@ -198,7 +198,9 @@ export function RecordsTable() {
       breederId: r.breederId,
       staff: r.staffName,
       puskeswan: r.puskeswan,
-      subInfo: r.children.map(c => `${c.gender}(${c.count})`).join(', '),
+      subInfo: r.matingType === 'Inseminasi Buatan' 
+        ? (r.bullType || '-') 
+        : r.children.map(c => `${c.gender}(${c.count})`).join(', '),
       cowInfo: `${r.cowType || '-'}-${r.cowEartag || '-'}`,
       gdLink: r.googleDriveLink,
       photo: r.servicePhoto
