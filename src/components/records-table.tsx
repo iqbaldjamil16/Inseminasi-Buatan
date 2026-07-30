@@ -177,7 +177,8 @@ export function RecordsTable() {
       breederId: r.breederId,
       staff: r.staffName,
       puskeswan: r.puskeswan,
-      subInfo: r.strawType
+      subInfo: r.strawType,
+      cowInfo: `${r.cowType || '-'}-${r.cowId || '-'}`
     }));
 
     const kelahiran = filteredBirthData.map(r => ({
@@ -188,7 +189,8 @@ export function RecordsTable() {
       breederId: r.breederId,
       staff: r.staffName,
       puskeswan: r.puskeswan,
-      subInfo: r.children.map(c => `${c.gender}(${c.count})`).join(', ')
+      subInfo: r.children.map(c => `${c.gender}(${c.count})`).join(', '),
+      cowInfo: `${r.cowType || '-'}-${r.cowEartag || '-'}`
     }));
 
     return [...inseminasi, ...kelahiran].sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -515,6 +517,7 @@ export function RecordsTable() {
                             <div className="space-y-2 border-t pt-4">
                               <RecordDetailRow label="Nama Peternak" value={record.breeder} />
                               <RecordDetailRow label="Jenis Straw" value={record.subInfo} />
+                              <RecordDetailRow label="Jenis Indukan" value={record.cowInfo} />
                             </div>
                           </AccordionContent>
                         </AccordionItem>
@@ -530,6 +533,7 @@ export function RecordsTable() {
                               <TableHead>Tanggal</TableHead>
                               <TableHead>Peternak</TableHead>
                               <TableHead>Jenis Straw</TableHead>
+                              <TableHead>Jenis Indukan</TableHead>
                               <TableHead>Petugas</TableHead>
                           </TableRow>
                       </TableHeader>
@@ -552,6 +556,7 @@ export function RecordsTable() {
                                       <div className="text-sm text-muted-foreground">{record.breederId}</div>
                                   </TableCell>
                                   <TableCell>{record.subInfo}</TableCell>
+                                  <TableCell>{record.cowInfo}</TableCell>
                                   <TableCell>{record.staff}</TableCell>
                               </TableRow>
                           ))}
