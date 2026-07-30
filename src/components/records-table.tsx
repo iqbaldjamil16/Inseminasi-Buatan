@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { InseminationRecordSchema, type InseminationRecord, type BirthRecord } from '@/lib/types';
+import { InseminationRecordSchema, type InseminationRecord, BirthRecordSchema, type BirthRecord } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -22,7 +22,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Search, BarChart, Table as TableIcon, FileSpreadsheet, ExternalLink, Image as ImageIcon } from 'lucide-react';
+import { Search, BarChart, Table as TableIcon, FileSpreadsheet, ExternalLink, Image as ImageIcon, Pencil, Trash2, Lock, Unlock } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Select,
@@ -34,12 +34,14 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { StatisticsView } from './statistics-view';
@@ -70,6 +72,11 @@ export function RecordsTable() {
   const [selectedPuskeswan, setSelectedPuskeswan] = useState<string>('all');
   const [selectedStaff, setSelectedStaff] = useState<string>('all');
   const [view, setView] = useState<'table' | 'stats'>('table');
+
+  // Admin / Lock State
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
 
   const firestore = useFirestore();
   const { user } = useUser();
@@ -187,7 +194,8 @@ export function RecordsTable() {
       subInfo: r.strawType,
       cowInfo: `${r.cowType || '-'}-${r.cowId || '-'}`,
       gdLink: r.googleDriveLink,
-      photo: r.servicePhoto
+      photo: r.servicePhoto,
+      rawData: r
     }));
 
     const kelahiran = filteredBirthData.map(r => ({
@@ -203,7 +211,8 @@ export function RecordsTable() {
         : r.children.map(c => `${c.gender}(${c.count})`).join(', '),
       cowInfo: `${r.cowType || '-'}-${r.cowEartag || '-'}`,
       gdLink: r.googleDriveLink,
-      photo: r.servicePhoto
+      photo: r.servicePhoto,
+      rawData: r
     }));
 
     return [...inseminasi, ...kelahiran].sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -226,6 +235,25 @@ export function RecordsTable() {
     { value: '6', label: 'Juli' }, { value: '7', label: 'Agustus' }, { value: '8', label: 'September' },
     { value: '9', label: 'Oktober' }, { value: '10', label: 'November' }, { value: '11', label: 'Desember' }
   ];
+
+  const handleAuth = () => {
+    if (passwordInput === 'pkh36') {
+      setIsAdmin(true);
+      setIsPasswordDialogOpen(false);
+      setPasswordInput('');
+      toast({ title: 'Akses Diberikan', description: 'Mode admin aktif.' });
+    } else {
+      toast({ title: 'Akses Ditolak', description: 'Password salah.', variant: 'destructive' });
+    }
+  };
+
+  const handleDelete = (id: string, type: 'Inseminasi' | 'Kelahiran') => {
+    if (!firestore) return;
+    const collectionName = type === 'Inseminasi' ? 'inseminationRecords' : 'birthRecords';
+    const docRef = doc(firestore, collectionName, id);
+    deleteDocumentNonBlocking(docRef);
+    toast({ title: 'Dihapus', description: 'Data berhasil dihapus.' });
+  };
 
   const sanitizeSheetName = (name: string) => {
     return name.substring(0, 31).replace(/[\[\]\*\?\/\\]/g, '');
@@ -402,13 +430,45 @@ export function RecordsTable() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <CardTitle>Catatan Inseminasi & Kelahiran</CardTitle>
-          <CardDescription>
-            Lihat, cari, ekspor, dan analisis semua data pelayanan ternak yang telah tercatat.
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle>Catatan Inseminasi & Kelahiran</CardTitle>
+            <CardDescription>
+              Lihat, cari, ekspor, dan analisis semua data pelayanan ternak yang telah tercatat.
+            </CardDescription>
+          </div>
+          <Button 
+            variant={isAdmin ? "secondary" : "ghost"} 
+            size="icon" 
+            onClick={() => isAdmin ? setIsAdmin(false) : setIsPasswordDialogOpen(true)}
+            title={isAdmin ? "Kunci Admin" : "Buka Admin"}
+          >
+            {isAdmin ? <Unlock className="h-4 w-4 text-primary" /> : <Lock className="h-4 w-4 text-muted-foreground" />}
+          </Button>
         </CardHeader>
       </Card>
+
+      {/* Password Dialog */}
+      <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Akses Admin</DialogTitle>
+            <DialogDescription>Masukkan password untuk mengaktifkan aksi edit dan hapus.</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input 
+              type="password" 
+              placeholder="Masukkan password" 
+              value={passwordInput} 
+              onChange={(e) => setPasswordInput(e.target.value)} 
+              onKeyDown={(e) => e.key === 'Enter' && handleAuth()}
+            />
+          </div>
+          <DialogFooter>
+            <Button onClick={handleAuth}>Konfirmasi</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader>
@@ -559,6 +619,16 @@ export function RecordsTable() {
                                   </a>
                                 ) : '-'
                               } />
+                              {isAdmin && (
+                                <div className="flex gap-2 justify-end pt-4">
+                                  <EditRecordDialog record={record.rawData} type={record.type} isAdmin={isAdmin} />
+                                  <DeleteConfirmDialog 
+                                    onConfirm={() => handleDelete(record.id!, record.type)}
+                                    title={`Hapus Data ${record.type}`}
+                                    description={`Apakah Anda yakin ingin menghapus data peternak ${record.breeder}?`}
+                                  />
+                                </div>
+                              )}
                             </div>
                             {record.photo && (
                               <div className="mt-4 w-full">
@@ -583,6 +653,7 @@ export function RecordsTable() {
                               <TableHead>Link GD</TableHead>
                               <TableHead className="w-[80px]"></TableHead>
                               <TableHead>Petugas</TableHead>
+                              {isAdmin && <TableHead className="text-right">Aksi</TableHead>}
                           </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -620,6 +691,18 @@ export function RecordsTable() {
                                     )}
                                   </TableCell>
                                   <TableCell>{record.staff}</TableCell>
+                                  {isAdmin && (
+                                    <TableCell className="text-right">
+                                      <div className="flex justify-end gap-2">
+                                        <EditRecordDialog record={record.rawData} type={record.type} isAdmin={isAdmin} />
+                                        <DeleteConfirmDialog 
+                                          onConfirm={() => handleDelete(record.id!, record.type)}
+                                          title={`Hapus Data ${record.type}`}
+                                          description={`Hapus data peternak ${record.breeder}?`}
+                                        />
+                                      </div>
+                                    </TableCell>
+                                  )}
                               </TableRow>
                           ))}
                       </TableBody>
@@ -634,5 +717,119 @@ export function RecordsTable() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function DeleteConfirmDialog({ onConfirm, title, description }: { onConfirm: () => void, title: string, description: string }) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button variant="outline" onClick={(e) => (e.target as any).closest('button[data-state="open"]')?.click()}>Batal</Button>
+          <Button variant="destructive" onClick={() => {
+            onConfirm();
+            // Closing trigger
+          }}>Hapus</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditRecordDialog({ record, type, isAdmin }: { record: any, type: 'Inseminasi' | 'Kelahiran', isAdmin: boolean }) {
+  const [open, setOpen] = useState(false);
+  const firestore = useFirestore();
+  const { toast } = useToast();
+
+  const form = useForm({
+    resolver: zodResolver(type === 'Inseminasi' ? InseminationRecordSchema : BirthRecordSchema),
+    defaultValues: record
+  });
+
+  const onSubmit = (data: any) => {
+    if (!firestore || !record.id) return;
+    const collectionName = type === 'Inseminasi' ? 'inseminationRecords' : 'birthRecords';
+    const docRef = doc(firestore, collectionName, record.id);
+    updateDocumentNonBlocking(docRef, data);
+    toast({ title: 'Diperbarui', description: 'Data berhasil diperbarui.' });
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon" className="text-primary hover:text-primary hover:bg-primary/10">
+          <Pencil className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Edit Data {type}</DialogTitle>
+          <DialogDescription>Perbarui informasi catatan pelayanan.</DialogDescription>
+        </DialogHeader>
+        
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Nama Peternak</Label>
+              <Input {...form.register('breederName')} />
+            </div>
+            <div className="space-y-2">
+              <Label>Identitas/KTP</Label>
+              <Input {...form.register('breederId')} />
+            </div>
+            <div className="space-y-2">
+              <Label>Desa</Label>
+              <Input {...form.register('breederAddress')} />
+            </div>
+            {type === 'Inseminasi' && (
+              <>
+                <div className="space-y-2">
+                  <Label>ID Eartag Indukan</Label>
+                  <Input {...form.register('cowId')} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Jenis Sapi</Label>
+                  <Input {...form.register('cowType')} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Jenis Straw</Label>
+                  <Input {...form.register('strawType')} />
+                </div>
+              </>
+            )}
+            {type === 'Kelahiran' && (
+               <>
+                <div className="space-y-2">
+                  <Label>ID Eartag Indukan</Label>
+                  <Input {...form.register('cowEartag')} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Jenis Perkawinan</Label>
+                  <Input {...form.register('matingType')} />
+                </div>
+               </>
+            )}
+            <div className="space-y-2 md:col-span-2">
+              <Label>Link Google Drive</Label>
+              <Input {...form.register('googleDriveLink')} />
+            </div>
+          </div>
+          
+          <DialogFooter className="pt-4">
+            <Button type="submit">Simpan Perubahan</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
